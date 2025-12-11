@@ -241,6 +241,12 @@
         [-34.464, -58.44], // noreste
       ];
 
+      // Tile layer oscuro de CARTO (sin API key)
+      const TILE_URL =
+        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+      const TILE_ATTRIBUTION =
+        '&copy; OpenStreetMap contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+
       // Crear icono tipo gota según estado
       function createTrapIcon(trap) {
         let stateClass = "";
@@ -440,7 +446,7 @@
       }
 
       // ------------------------------
-      // Mini-mapa en Dashboard (Stadia dark)
+      // Mini-mapa en Dashboard (CARTO dark)
       // ------------------------------
       function DashboardMiniMap() {
         const miniMapRef = useRef(null);
@@ -458,15 +464,11 @@
             keyboard: false,
           });
 
-          // Basemap Stadia alidade_smooth_dark
-          L.tileLayer(
-            "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
-            {
-              maxZoom: 20,
-              attribution:
-                "&copy; OpenMapTiles &copy; OpenStreetMap contributors &copy; Stadia Maps",
-            }
-          ).addTo(map);
+          // Basemap CARTO dark
+          L.tileLayer(TILE_URL, {
+            maxZoom: 20,
+            attribution: TILE_ATTRIBUTION,
+          }).addTo(map);
 
           // Centrado inicial en Vicente López pero sin acotar
           map.fitBounds(BOUNDS_VICENTE_LOPEZ);
@@ -532,34 +534,33 @@
               </Card>
             </div>
 
-            {/* Última foto + mini-mapa de red de trampas */}
-           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-  {/* AHORA EL MAPA ES EL ANCHO (IZQUIERDA) */}
-  <Card title="Red de trampas" className="lg:col-span-2">
-    <DashboardMiniMap />
-    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
-      <span>🟢 Online · 🟡 Advertencia · 🔴 Offline</span>
-      <span>{TRAPS.length} trampas</span>
-    </div>
-  </Card>
+            {/* Red de trampas + última foto */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Mapa ancho a la izquierda */}
+              <Card title="Red de trampas" className="lg:col-span-2">
+                <DashboardMiniMap />
+                <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
+                  <span>🟢 Online · 🟡 Advertencia · 🔴 Offline</span>
+                  <span>{TRAPS.length} trampas</span>
+                </div>
+              </Card>
 
-  {/* Y LA FOTO QUEDA A LA DERECHA */}
-  <Card title="Última foto procesada">
-    <div className="rounded-xl overflow-hidden h-56 md:h-72 bg-black flex items-center justify-center">
-      <img
-        src="./assets/ultima-foto-procesada.jpg"
-        alt="Última imagen procesada por IA"
-        className="w-full h-full object-cover"
-      />
-    </div>
+              {/* Foto a la derecha */}
+              <Card title="Última foto procesada">
+                <div className="rounded-xl overflow-hidden h-56 md:h-72 bg-black flex items-center justify-center">
+                  <img
+                    src="./assets/ultima-foto-procesada.jpg"
+                    alt="Última imagen procesada por IA"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
 
-    <div className="flex justify-between items-center mt-2 text-[11px] text-slate-500">
-      <span>Generada por IA · Trampa T-10</span>
-      <span>Procesada hace 3 h</span>
-    </div>
-  </Card>
-</div>
-
+                <div className="flex justify-between items-center mt-2 text-[11px] text-slate-500">
+                  <span>Generada por IA · Trampa T-10</span>
+                  <span>Procesada hace 3 h</span>
+                </div>
+              </Card>
+            </div>
 
             {/* Alertas + estado de trampas */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -624,15 +625,11 @@
 
           const map = L.map(mapRef.current);
 
-          // Basemap Stadia alidade_smooth_dark
-          L.tileLayer(
-            "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
-            {
-              maxZoom: 20,
-              attribution:
-                "&copy; OpenMapTiles &copy; OpenStreetMap contributors &copy; Stadia Maps",
-            }
-          ).addTo(map);
+          // Basemap CARTO dark
+          L.tileLayer(TILE_URL, {
+            maxZoom: 20,
+            attribution: TILE_ATTRIBUTION,
+          }).addTo(map);
 
           // Centrado inicial en Vicente López, pero sin limitar el movimiento
           map.fitBounds(BOUNDS_VICENTE_LOPEZ);
