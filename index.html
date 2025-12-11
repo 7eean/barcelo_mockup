@@ -101,24 +101,24 @@
 
 /* Variantes de color por estado */
 .trap-marker--activo {
-  --marker-color: #22c55e; /* verde */
+  --marker-color: #32D06C; /* verde */
 }
 
 .trap-marker--15d {
-  --marker-color: #e5e7eb; /* gris claro */
+  --marker-color: #D3D7DF; /* gris claro */
 }
 
 .trap-marker--30d {
-  --marker-color: #9ca3af; /* gris medio/oscuro */
+  --marker-color: #8A919B; /* gris medio/oscuro */
 }
 
 .trap-marker--indeterminado {
-  --marker-color: #020617; /* casi negro */
+  --marker-color: #1E293B; /* casi negro */
 }
 
 /* Aedes detectado: rojo fuerte y bien visible */
 .trap-marker--aedes {
-  --marker-color: #ef4444;
+  --marker-color: #E5484D;
 }
 
 .leaflet-pane,
@@ -452,7 +452,7 @@
                       key={item.id}
                       onClick={() => setView(item.id)}
                       className={
-                        "w-full flex items-center gap-2 px-5 py-2.5 text-sm text-left transition " +
+                        "w-full flex items-center gap-2 px-5 py-2.5 color-[#06B6D4] text-sm text-left transition " +
                         (active
                           ? "bg-cyan-50 text-cyan-700 border-r-4 border-cyan-500 font-medium"
                           : "text-slate-600 hover:bg-slate-50")
@@ -647,7 +647,7 @@
         return (
           <div
             ref={miniMapRef}
-            className="h-56 md:h-72 rounded-xl border border-slate-200 overflow-hidden"
+            className="h-72 md:h-96 lg:h-[420px] rounded-xl border border-slate-200 overflow-hidden"
           ></div>
         );
       }
@@ -657,180 +657,204 @@
       // ------------------------------
 
       function DashboardView() {
-        const activos = TRAPS.filter((t) => t.estado === "activo").length;
+  const activos = TRAPS.filter((t) => t.estado === "activo").length;
 
-        return (
-          <div className="space-y-4">
-            <PageHeader
-              title="Resumen general - Plataforma Barceló"
-              subtitle="Actividad del sistema de trampas Barceló en Vicente López."
-            />
+  return (
+    <div className="space-y-4">
+      <PageHeader
+        title="Resumen general - Plataforma Barceló"
+        subtitle="Actividad del sistema de trampas Barceló en Vicente López."
+      />
 
-            {/* Métricas principales NUEVAS */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
-              <Card title="Aedes">
-                <div className="text-2xl md:text-3xl font-semibold text-rose-600">
-                  {DEMO_STATS.aedes}
-                </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Últimas 24 h (demo)
-                </p>
-              </Card>
-              <Card title="Mosquitos">
-                <div className="text-2xl md:text-3xl font-semibold text-emerald-600">
-                  {DEMO_STATS.mosquitos}
-                </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Otras especies (demo)
-                </p>
-              </Card>
-              <Card title="Otro">
-                <div className="text-2xl md:text-3xl font-semibold text-slate-700">
-                  {DEMO_STATS.otros}
-                </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Otros insectos (demo)
-                </p>
-              </Card>
-              <Card title="Total trampas activas">
-                <div className="text-2xl md:text-3xl font-semibold text-slate-900">
-                  {activos}
-                </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Dispositivos en estado activo
-                </p>
-              </Card>
-            </div>
-
-            {/* Red de trampas + última foto */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Mapa ancho a la izquierda */}
-              <Card title="Red de trampas" className="lg:col-span-2">
-                <DashboardMiniMap />
-                <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
-                  <span>
-                    🔴 Aedes detectado · 🟢 Activo · ⚪︎ &gt;15 días sin datos ·
-                    ⚫︎ &gt;30 días sin datos · ⬛ Indeterminado
-                  </span>
-                  <span>{TRAPS.length} trampas</span>
-                </div>
-              </Card>
-
-              {/* Foto a la derecha */}
-              <Card title="Última foto procesada">
-                <div className="rounded-xl overflow-hidden h-56 md:h-72 bg-black flex items-center justify-center">
-                  <img
-                    src="./assets/ultima-foto-procesada.jpg"
-                    alt="Última imagen procesada por IA"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                <div className="flex justify-between items-center mt-2 text-[11px] text-slate-500">
-                  <span>Generada por IA · Trampa T-10</span>
-                  <span>Procesada hace 3 h</span>
-                </div>
-              </Card>
-            </div>
-
-            {/* Alertas + estado de trampas (resumen) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card title="Alertas recientes">
-                <ul className="text-sm text-slate-700 space-y-2">
-                  <li className="flex justify-between">
-                    <span>
-                      <span className="font-medium">T-10</span> · Aedes
-                      detectado
-                    </span>
-                    <span className="text-xs text-slate-400">hace 3 h</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>
-                      <span className="font-medium">T-20</span> · &gt;15 días sin
-                      datos
-                    </span>
-                    <span className="text-xs text-slate-400">hace 18 días</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>
-                      <span className="font-medium">T-30</span> · &gt;30 días sin
-                      datos
-                    </span>
-                    <span className="text-xs text-slate-400">hace 32 días</span>
-                  </li>
-                </ul>
-              </Card>
-
-              <Card title="Distribución de estado (demo)">
-                {(() => {
-                  const activos = TRAPS.filter(
-                    (t) => t.estado === "activo"
-                  ).length;
-                  const mas15 = TRAPS.filter(
-                    (t) => t.estado === "15d"
-                  ).length;
-                  const mas30 = TRAPS.filter(
-                    (t) => t.estado === "30d"
-                  ).length;
-                  const indet = TRAPS.filter(
-                    (t) => t.estado === "indeterminado"
-                  ).length;
-                  const total = TRAPS.length || 1;
-
-                  return (
-                    <div className="space-y-2 text-sm text-slate-700">
-                      <div className="flex justify-between items-center">
-                        <span>Activos</span>
-                        <div className="w-32 h-2 rounded-full bg-slate-100">
-                          <div
-                            className="h-2 rounded-full bg-emerald-400"
-                            style={{
-                              width: `${(activos / total) * 100}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>&gt;15 días sin datos</span>
-                        <div className="w-32 h-2 rounded-full bg-slate-100">
-                          <div
-                            className="h-2 rounded-full bg-slate-400"
-                            style={{
-                              width: `${(mas15 / total) * 100}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>&gt;30 días sin datos</span>
-                        <div className="w-32 h-2 rounded-full bg-slate-100">
-                          <div
-                            className="h-2 rounded-full bg-slate-500"
-                            style={{
-                              width: `${(mas30 / total) * 100}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>Indeterminado</span>
-                        <div className="w-32 h-2 rounded-full bg-slate-100">
-                          <div
-                            className="h-2 rounded-full bg-slate-700"
-                            style={{
-                              width: `${(indet / total) * 100}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </Card>
-            </div>
+      {/* Métricas principales */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+        <Card title="Aedes">
+          <div className="text-2xl md:text-3xl font-semibold text-rose-600">
+            {DEMO_STATS.aedes}
           </div>
-        );
-      }
+          <p className="text-xs text-slate-500 mt-1">Últimas 24 h (demo)</p>
+        </Card>
+        <Card title="Mosquitos">
+          <div className="text-2xl md:text-3xl font-semibold text-emerald-600">
+            {DEMO_STATS.mosquitos}
+          </div>
+          <p className="text-xs text-slate-500 mt-1">Otras especies (demo)</p>
+        </Card>
+        <Card title="Otro">
+          <div className="text-2xl md:text-3xl font-semibold text-slate-700">
+            {DEMO_STATS.otros}
+          </div>
+          <p className="text-xs text-slate-500 mt-1">Otros insectos (demo)</p>
+        </Card>
+        <Card title="Total trampas activas">
+          <div className="text-2xl md:text-3xl font-semibold text-slate-900">
+            {activos}
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Dispositivos en estado activo
+          </p>
+        </Card>
+      </div>
+
+      {/* Mapa de red de trampas - full width */}
+      <Card title="Red de trampas">
+        <DashboardMiniMap />
+        <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
+          <span>
+            🔴 Aedes detectado · 🟢 Activo · ⚪︎ &gt;15 días sin datos · ⚫︎ &gt;30
+            días sin datos · ⬛ Indeterminado
+          </span>
+          <span>{TRAPS.length} trampas</span>
+        </div>
+      </Card>
+
+      {/* Última foto (izquierda) + Alertas recientes (derecha) */}
+      <div className="grid grid-cols-1 lg:grid-cols-[2.2fr_1fr] gap-4">
+        <Card title="Última foto procesada">
+          <div className="rounded-xl overflow-hidden h-56 md:h-72 bg-black flex items-center justify-center">
+            <img
+              src="./assets/ultima-foto-procesada.jpg"
+              alt="Última imagen procesada por IA"
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          <div className="flex justify-between items-center mt-2 text-[11px] text-slate-500">
+            <span>Generada por IA · Trampa T-10</span>
+            <span>Procesada hace 3 h</span>
+          </div>
+        </Card>
+
+        <Card title="Alertas recientes">
+          <ul className="text-sm text-slate-700 space-y-2">
+            <li className="flex justify-between">
+              <span>
+                <span className="font-medium">T-10</span> · Aedes detectado
+              </span>
+              <span className="text-xs text-slate-400">hace 3 h</span>
+            </li>
+            <li className="flex justify-between">
+              <span>
+                <span className="font-medium">T-20</span> · &gt;15 días sin datos
+              </span>
+              <span className="text-xs text-slate-400">hace 18 días</span>
+            </li>
+            <li className="flex justify-between">
+              <span>
+                <span className="font-medium">T-30</span> · &gt;30 días sin datos
+              </span>
+              <span className="text-xs text-slate-400">hace 32 días</span>
+            </li>
+            <li className="flex justify-between">
+              <span>
+                <span className="font-medium">T-10</span> · Aedes detectado
+              </span>
+              <span className="text-xs text-slate-400">hace 3 h</span>
+            </li>
+            <li className="flex justify-between">
+              <span>
+                <span className="font-medium">T-20</span> · &gt;15 días sin datos
+              </span>
+              <span className="text-xs text-slate-400">hace 18 días</span>
+            </li>
+            <li className="flex justify-between">
+              <span>
+                <span className="font-medium">T-30</span> · &gt;30 días sin datos
+              </span>
+              <span className="text-xs text-slate-400">hace 32 días</span>
+            </li>
+            <li className="flex justify-between">
+              <span>
+                <span className="font-medium">T-10</span> · Aedes detectado
+              </span>
+              <span className="text-xs text-slate-400">hace 3 h</span>
+            </li>
+            <li className="flex justify-between">
+              <span>
+                <span className="font-medium">T-20</span> · &gt;15 días sin datos
+              </span>
+              <span className="text-xs text-slate-400">hace 18 días</span>
+            </li>
+            <li className="flex justify-between">
+              <span>
+                <span className="font-medium">T-30</span> · &gt;30 días sin datos
+              </span>
+              <span className="text-xs text-slate-400">hace 32 días</span>
+            </li>
+            <li className="flex justify-between">
+              <span>
+                <span className="font-medium">T-20</span> · &gt;15 días sin datos
+              </span>
+              <span className="text-xs text-slate-400">hace 18 días</span>
+            </li>
+            <li className="flex justify-between">
+              <span>
+                <span className="font-medium">T-30</span> · &gt;30 días sin datos
+              </span>
+              <span className="text-xs text-slate-400">hace 32 días</span>
+            </li>
+          </ul>
+        </Card>
+      </div>
+
+      {/* Distribución de estado - full width al final */}
+      <Card title="Distribución de estado (demo)">
+        {(() => {
+          const activos = TRAPS.filter((t) => t.estado === "activo").length;
+          const mas15 = TRAPS.filter((t) => t.estado === "15d").length;
+          const mas30 = TRAPS.filter((t) => t.estado === "30d").length;
+          const indet = TRAPS.filter(
+            (t) => t.estado === "indeterminado"
+          ).length;
+          const total = TRAPS.length || 1;
+
+          return (
+            <div className="space-y-2 text-sm text-slate-700">
+              <div className="flex items-center gap-4">
+  <span className="min-w-[140px]">Activos</span>
+  <div className="flex-1 h-2 rounded-full bg-slate-100">
+    <div
+      className="h-2 rounded-full bg-emerald-400"
+      style={{ width: `${(activos / total) * 100}%` }}
+    ></div>
+  </div>
+</div>
+
+              <div className="flex justify-between gap-4">
+                <span className="min-w-[140px]">&gt;15 días sin datos</span>
+                <div className="flex-1 h-2 rounded-full bg-slate-100">
+                  <div
+                    className="h-2 rounded-full bg-slate-400"
+                    style={{ width: `${(mas15 / total) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="min-w-[140px]">&gt;30 días sin datos</span>
+                <div className="flex-1 h-2 rounded-full bg-slate-100">
+                  <div
+                    className="h-2 rounded-full bg-slate-500"
+                    style={{ width: `${(mas30 / total) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="min-w-[140px]">Indeterminado</span>
+                <div className="flex-1 h-2 rounded-full bg-slate-100">
+                  <div
+                    className="h-2 rounded-full bg-slate-700"
+                    style={{ width: `${(indet / total) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </Card>
+    </div>
+  );
+}
+
 
       // ------------------------------
       // Mapa con filtros + deep link a Trampas
@@ -904,7 +928,7 @@
     ESTADO_CONFIG[selectedTrap?.estado] || ESTADO_CONFIG["indeterminado"];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <PageHeader
         title="Mapa de trampas"
         subtitle="Visualización geográfica de las trampas dentro de Vicente López."
@@ -940,7 +964,7 @@
         <Card title="Mapa Vicente López">
           <div
             ref={mapRef}
-            className="h-96 md:h-[480px] rounded-xl border border-slate-200 overflow-hidden"
+            className="h-296 md:h-[480px] rounded-xl border border-slate-200 overflow-hidden"
           ></div>
         </Card>
 
