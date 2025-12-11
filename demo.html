@@ -1,0 +1,1105 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Plataforma Barceló – Demo UI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Tailwind por CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React 18 por CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Babel para entender JSX en este archivo -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Leaflet CSS + JS (mapa real) -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+          "Segoe UI", sans-serif;
+      }
+
+      /* Fondo técnico tenue general */
+      .hex-bg {
+        background-image: radial-gradient(
+            circle at 0 0,
+            rgba(148, 163, 184, 0.12) 0,
+            transparent 55%
+          ),
+          radial-gradient(
+            circle at 40px 60px,
+            rgba(148, 163, 184, 0.08) 0,
+            transparent 55%
+          );
+        background-size: 120px 120px;
+      }
+
+      .main-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5f5 transparent;
+      }
+      .main-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .main-scroll::-webkit-scrollbar-thumb {
+        background: #cbd5f5;
+        border-radius: 999px;
+      }
+
+      /* Pines tipo gota como en la plataforma original */
+      .trap-pin {
+        position: relative;
+        width: 18px;
+        height: 18px;
+        border-radius: 9999px;
+        border: 2px solid #ffffff;
+        box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.6),
+          0 6px 10px rgba(0, 0, 0, 0.8);
+      }
+      .trap-pin::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: -7px;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 7px 5px 0 5px; /* triángulo hacia abajo */
+      }
+
+      .trap-pin--online {
+        background-color: #22c55e; /* verde */
+      }
+      .trap-pin--online::after {
+        border-color: #22c55e transparent transparent transparent;
+      }
+
+      .trap-pin--warning {
+        background-color: #f9fafb; /* blanco */
+      }
+      .trap-pin--warning::after {
+        border-color: #f9fafb transparent transparent transparent;
+      }
+
+      .trap-pin--offline {
+        background-color: #ef4444; /* rojo */
+      }
+      .trap-pin--offline::after {
+        border-color: #ef4444 transparent transparent transparent;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50">
+    <div id="root" class="h-screen"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
+
+      // 👇 Logo local
+      const LOGO_SRC = "./assets/logo-mvl-DGLZP4De.png";
+
+      const NAV_ITEMS = [
+        { id: "dashboard", label: "Dashboard" },
+        { id: "map", label: "Mapa" },
+        { id: "traps", label: "Trampas" },
+        { id: "alerts", label: "Alertas" },
+      ];
+
+      // ------------------------------
+      // Datos de ejemplo de trampas
+      // ------------------------------
+      const TRAPS = [
+        {
+          id: "T-10",
+          lat: -34.523,
+          lng: -58.479,
+          estado: "online",
+          barrio: "Florida",
+          ultimaTransmision: "hace 2 h",
+        },
+        {
+          id: "T-20",
+          lat: -34.534,
+          lng: -58.473,
+          estado: "warning",
+          barrio: "Olivos",
+          ultimaTransmision: "hace 5 h",
+        },
+        {
+          id: "T-30",
+          lat: -34.537,
+          lng: -58.489,
+          estado: "offline",
+          barrio: "La Lucila",
+          ultimaTransmision: "hace 18 h",
+        },
+        {
+          id: "T-40",
+          lat: -34.507,
+          lng: -58.482,
+          estado: "online",
+          barrio: "Vicente López",
+          ultimaTransmision: "hace 1 h",
+        },
+        {
+          id: "T-50",
+          lat: -34.506,
+          lng: -58.479,
+          estado: "online",
+          barrio: "Florida",
+          ultimaTransmision: "hace 2 h",
+        },
+        {
+          id: "T-60",
+          lat: -34.509,
+          lng: -58.5,
+          estado: "online",
+          barrio: "Florida",
+          ultimaTransmision: "hace 2 h",
+        },
+        {
+          id: "T-90",
+          lat: -34.503,
+          lng: -58.529,
+          estado: "online",
+          barrio: "Florida",
+          ultimaTransmision: "hace 2 h",
+        },
+        {
+          id: "T-100",
+          lat: -34.537,
+          lng: -58.469,
+          estado: "online",
+          barrio: "La Lucila",
+          ultimaTransmision: "hace 18 h",
+        },
+        {
+          id: "T-200",
+          lat: -34.537,
+          lng: -58.482,
+          estado: "offline",
+          barrio: "La Lucila",
+          ultimaTransmision: "hace 18 h",
+        },
+      ];
+
+      // ------------------------------
+      // Datos de ejemplo de alertas
+      // ------------------------------
+      const ALERTS = [
+        {
+          id: 1,
+          trapId: "T-10",
+          tipo: "Detección",
+          detalle: "Aedes aegypti detectado en captura reciente.",
+          severidad: "alta",
+          estado: "abierta",
+          hace: "hace 3 h",
+        },
+        {
+          id: 2,
+          trapId: "T-30",
+          tipo: "Conectividad",
+          detalle: "Trampa sin conexión desde hace más de 12 horas.",
+          severidad: "media",
+          estado: "abierta",
+          hace: "hace 18 h",
+        },
+        {
+          id: 3,
+          trapId: "T-20",
+          tipo: "Sistema",
+          detalle: "Señal WiFi inestable detectada.",
+          severidad: "baja",
+          estado: "abierta",
+          hace: "hace 5 h",
+        },
+        {
+          id: 4,
+          trapId: "T-40",
+          tipo: "Detección",
+          detalle: "Aumento inusual de capturas de mosquitos.",
+          severidad: "media",
+          estado: "resuelta",
+          hace: "ayer",
+        },
+      ];
+
+      // Bounds aproximados de Vicente López (solo para centrar al inicio)
+      const BOUNDS_VICENTE_LOPEZ = [
+        [-34.559, -58.516], // suroeste
+        [-34.464, -58.44], // noreste
+      ];
+
+      // Crear icono tipo gota según estado
+      function createTrapIcon(trap) {
+        let stateClass = "";
+        if (trap.estado === "online") stateClass = "trap-pin--online";
+        else if (trap.estado === "warning") stateClass = "trap-pin--warning";
+        else stateClass = "trap-pin--offline";
+
+        return L.divIcon({
+          className: `trap-pin ${stateClass}`,
+          iconSize: [18, 26], // círculo + colita
+          iconAnchor: [9, 26],
+        });
+      }
+
+      // ------------------------------
+      // Layout / componentes base
+      // ------------------------------
+
+      function Sidebar({ currentView, setView, className = "" }) {
+        return (
+          <aside
+            className={
+              "h-full w-64 border-r border-slate-200 bg-white flex " + className
+            }
+          >
+            {/* Línea cian vertical */}
+            <div className="w-1 bg-cyan-500 rounded-r-xl my-4"></div>
+            <div className="flex-1 flex flex-col">
+              <div className="px-4 pt-4 pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={LOGO_SRC}
+                    alt="Muni"
+                    className="h-28 w-auto object-contain"
+                  />
+                  <div className="leading-tight"></div>
+                </div>
+              </div>
+
+              <nav className="mt-2 flex-1">
+                {NAV_ITEMS.map((item) => {
+                  const active = currentView === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setView(item.id)}
+                      className={
+                        "w-full flex items-center gap-2 px-5 py-2.5 text-sm text-left transition " +
+                        (active
+                          ? "bg-cyan-50 text-cyan-700 border-r-4 border-cyan-500 font-medium"
+                          : "text-slate-600 hover:bg-slate-50")
+                      }
+                    >
+                      <span className="w-2 h-2 rounded-full bg-slate-300"></span>
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+
+              <div className="px-5 pb-4 text-[11px] text-slate-400">
+                Mockup UI · SIN datos reales
+              </div>
+            </div>
+          </aside>
+        );
+      }
+
+      // 🔹 Barra superior para MOBILE (mobile first) con hamburguesa
+      function TopBar({
+        currentView,
+        setView,
+        mobileNavOpen,
+        setMobileNavOpen,
+      }) {
+        return (
+          <header className="md:hidden border-b border-slate-200 bg-white">
+            <div className="px-4 pt-3 pb-2 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <img
+                  src={LOGO_SRC}
+                  alt="Municipalidad de Vicente López"
+                  className="h-14 w-auto object-contain"
+                />
+                <div className="leading-tight"></div>
+              </div>
+
+              {/* Botón hamburguesa */}
+              <button
+                onClick={() => setMobileNavOpen((open) => !open)}
+                className="p-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                aria-label="Abrir menú de navegación"
+              >
+                <svg
+                  className="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  {mobileNavOpen ? (
+                    <path d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <>
+                      <line x1="3" y1="6" x2="21" y2="6" />
+                      <line x1="3" y1="12" x2="21" y2="12" />
+                      <line x1="3" y1="18" x2="21" y2="18" />
+                    </>
+                  )}
+                </svg>
+              </button>
+            </div>
+
+            {/* Menú desplegable en mobile */}
+            {mobileNavOpen && (
+              <div className="border-t border-slate-200 px-2 pb-2 bg-white">
+                <nav className="flex flex-col gap-1 py-2">
+                  {NAV_ITEMS.map((item) => {
+                    const active = currentView === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setView(item.id);
+                          setMobileNavOpen(false);
+                        }}
+                        className={
+                          "w-full text-left px-3 py-2 rounded-lg text-sm " +
+                          (active
+                            ? "bg-slate-900 text-white"
+                            : "bg-white text-slate-700 border border-slate-200")
+                        }
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
+            )}
+          </header>
+        );
+      }
+
+      function PageHeader({ title, subtitle }) {
+        return (
+          <header className="mb-3">
+            <h1 className="text-xl md:text-2xl font-semibold text-slate-900">
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
+            )}
+          </header>
+        );
+      }
+
+      function Card({ title, children, className = "" }) {
+        return (
+          <section
+            className={
+              "bg-white shadow-sm shadow-slate-100 border border-slate-100 rounded-2xl p-4 " +
+              className
+            }
+          >
+            {title && (
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">
+                {title}
+              </h2>
+            )}
+            {children}
+          </section>
+        );
+      }
+
+      function Badge({ children, color = "slate" }) {
+        const colorClasses =
+          color === "red"
+            ? "bg-rose-50 text-rose-700 border-rose-200"
+            : color === "amber"
+            ? "bg-amber-50 text-amber-700 border-amber-200"
+            : color === "green"
+            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+            : "bg-slate-50 text-slate-600 border-slate-200";
+
+        return (
+          <span
+            className={
+              "px-2 py-0.5 rounded-full text-[11px] border " + colorClasses
+            }
+          >
+            {children}
+          </span>
+        );
+      }
+
+      // ------------------------------
+      // Mini-mapa en Dashboard (Stadia dark)
+      // ------------------------------
+      function DashboardMiniMap() {
+        const miniMapRef = useRef(null);
+
+        useEffect(() => {
+          if (!miniMapRef.current || !window.L) return;
+
+          const map = L.map(miniMapRef.current, {
+            zoomControl: false,
+            attributionControl: false,
+            dragging: true,
+            scrollWheelZoom: false,
+            doubleClickZoom: false,
+            boxZoom: false,
+            keyboard: false,
+          });
+
+          // Basemap Stadia alidade_smooth_dark
+          L.tileLayer(
+            "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
+            {
+              maxZoom: 20,
+              attribution:
+                "&copy; OpenMapTiles &copy; OpenStreetMap contributors &copy; Stadia Maps",
+            }
+          ).addTo(map);
+
+          // Centrado inicial en Vicente López pero sin acotar
+          map.fitBounds(BOUNDS_VICENTE_LOPEZ);
+
+          // Trampas con icono custom tipo gota
+          TRAPS.forEach((trap) => {
+            const icon = createTrapIcon(trap);
+            L.marker([trap.lat, trap.lng], { icon })
+              .addTo(map)
+              .bindTooltip(trap.id, { direction: "top", offset: [0, -4] });
+          });
+
+          return () => {
+            map.remove();
+          };
+        }, []);
+
+        return (
+          <div
+            ref={miniMapRef}
+            className="h-56 md:h-72 rounded-xl border border-slate-200 overflow-hidden"
+          ></div>
+        );
+      }
+
+      // ------------------------------
+      // Vistas
+      // ------------------------------
+
+      function DashboardView() {
+        return (
+          <div className="space-y-4">
+            <PageHeader
+              title="Resumen general - Plataforma Barceló"
+              subtitle="Actividad del sistema de trampas Barceló en Vicente López."
+            />
+
+            {/* Métricas principales */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
+              <Card title="Total mosquitos">
+                <div className="text-2xl md:text-3xl font-semibold text-slate-900">
+                  1
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Últimas 24 horas
+                </p>
+              </Card>
+              <Card title="Total moscas">
+                <div className="text-2xl md:text-3xl font-semibold text-slate-900">
+                  2
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Últimas 24 horas
+                </p>
+              </Card>
+              <Card title="Total Aedes" className="col-span-2 sm:col-span-1">
+                <div className="text-2xl md:text-3xl font-semibold text-rose-500">
+                  0
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Últimas 24 horas
+                </p>
+              </Card>
+            </div>
+
+            {/* Última foto + mini-mapa de red de trampas */}
+           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  {/* AHORA EL MAPA ES EL ANCHO (IZQUIERDA) */}
+  <Card title="Red de trampas" className="lg:col-span-2">
+    <DashboardMiniMap />
+    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
+      <span>🟢 Online · 🟡 Advertencia · 🔴 Offline</span>
+      <span>{TRAPS.length} trampas</span>
+    </div>
+  </Card>
+
+  {/* Y LA FOTO QUEDA A LA DERECHA */}
+  <Card title="Última foto procesada">
+    <div className="rounded-xl overflow-hidden h-56 md:h-72 bg-black flex items-center justify-center">
+      <img
+        src="./assets/ultima-foto-procesada.jpg"
+        alt="Última imagen procesada por IA"
+        className="w-full h-full object-cover"
+      />
+    </div>
+
+    <div className="flex justify-between items-center mt-2 text-[11px] text-slate-500">
+      <span>Generada por IA · Trampa T-10</span>
+      <span>Procesada hace 3 h</span>
+    </div>
+  </Card>
+</div>
+
+
+            {/* Alertas + estado de trampas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Card title="Alertas recientes">
+                <ul className="text-sm text-slate-700 space-y-2">
+                  <li className="flex justify-between">
+                    <span>
+                      <span className="font-medium">T-20</span> · Señal
+                      inestable
+                    </span>
+                    <span className="text-xs text-slate-400">hace 5 h</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>
+                      <span className="font-medium">T-30</span> · Trampa offline
+                    </span>
+                    <span className="text-xs text-slate-400">hace 18 h</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>
+                      <span className="font-medium">T-10</span> · Aedes
+                      detectado
+                    </span>
+                    <span className="text-xs text-slate-400">ayer</span>
+                  </li>
+                </ul>
+              </Card>
+
+              <Card title="Estado de trampas (demo)">
+                <div className="space-y-2 text-sm text-slate-700">
+                  <div className="flex justify-between items-center">
+                    <span>En línea</span>
+                    <div className="w-28 md:w-32 h-2 rounded-full bg-slate-100">
+                      <div className="h-2 w-3/4 bg-emerald-400 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Advertencia</span>
+                    <div className="w-28 md:w-32 h-2 rounded-full bg-slate-100">
+                      <div className="h-2 w-1/5 bg-amber-400 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Sin conexión</span>
+                    <div className="w-28 md:w-32 h-2 rounded-full bg-slate-100">
+                      <div className="h-2 w-1/10 bg-rose-400 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        );
+      }
+
+      function MapView() {
+        const mapRef = useRef(null);
+        const [selectedTrap, setSelectedTrap] = useState(TRAPS[0]);
+
+        useEffect(() => {
+          if (!mapRef.current || !window.L) return;
+
+          const map = L.map(mapRef.current);
+
+          // Basemap Stadia alidade_smooth_dark
+          L.tileLayer(
+            "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
+            {
+              maxZoom: 20,
+              attribution:
+                "&copy; OpenMapTiles &copy; OpenStreetMap contributors &copy; Stadia Maps",
+            }
+          ).addTo(map);
+
+          // Centrado inicial en Vicente López, pero sin limitar el movimiento
+          map.fitBounds(BOUNDS_VICENTE_LOPEZ);
+
+          // Trampas con icono custom tipo gota
+          TRAPS.forEach((trap) => {
+            const icon = createTrapIcon(trap);
+            const marker = L.marker([trap.lat, trap.lng], { icon }).addTo(map);
+            marker.bindPopup(`${trap.id} · ${trap.barrio}`);
+            marker.on("click", () => {
+              setSelectedTrap(trap);
+            });
+          });
+
+          return () => {
+            map.remove();
+          };
+        }, []);
+
+        return (
+          <div className="space-y-4">
+            <PageHeader
+              title="Mapa de trampas"
+              subtitle="Visualización geográfica de las trampas dentro de Vicente López."
+            />
+
+            {/* Filtros */}
+            <div className="flex flex-wrap gap-2 mb-1">
+              <button className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-900 text-white">
+                Mosquitos
+              </button>
+              <button className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                Aedes
+              </button>
+              <button className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                Estado
+              </button>
+              <button className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                Barrio
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,0.8fr)] gap-4">
+              {/* Mapa real dark con Leaflet, más grande */}
+              <Card title="Mapa Vicente López">
+                <div
+                  ref={mapRef}
+                  className="h-96 md:h-[480px] rounded-xl border border-slate-200 overflow-hidden"
+                ></div>
+              </Card>
+
+              <Card title="Trampa seleccionada">
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      ID
+                    </div>
+                    <div className="font-semibold text-slate-900">
+                      {selectedTrap?.id}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Barrio
+                    </div>
+                    <div className="text-slate-700">
+                      {selectedTrap?.barrio}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Estado
+                    </div>
+                    <div className="inline-flex items-center gap-1">
+                      <span
+                        className={
+                          "w-2 h-2 rounded-full " +
+                          (selectedTrap?.estado === "online"
+                            ? "bg-emerald-500"
+                            : selectedTrap?.estado === "warning"
+                            ? "bg-amber-500"
+                            : "bg-rose-500")
+                        }
+                      ></span>
+                      <span className="capitalize">
+                        {selectedTrap?.estado}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Última transmisión
+                    </div>
+                    <div className="text-slate-700">
+                      {selectedTrap?.ultimaTransmision}
+                    </div>
+                  </div>
+
+                  <button className="mt-3 w-full py-2 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800">
+                    Ver detalle de trampa
+                  </button>
+                </div>
+              </Card>
+            </div>
+          </div>
+        );
+      }
+
+      function TrapDetailView() {
+        const [selectedTrapId, setSelectedTrapId] = useState(TRAPS[0].id);
+        const trap = TRAPS.find((t) => t.id === selectedTrapId);
+
+        return (
+          <div className="space-y-4">
+            <PageHeader
+              title={`Trampa ${trap.id}`}
+              subtitle="Vista técnica del dispositivo y estado de hardware."
+            />
+
+            {/* Selector de trampa */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+              <p className="text-sm text-slate-500">
+                Seleccioná una trampa para ver su detalle técnico.
+              </p>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 uppercase tracking-wide">
+                  Trampa
+                </span>
+                <select
+                  value={selectedTrapId}
+                  onChange={(e) => setSelectedTrapId(e.target.value)}
+                  className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/60 focus:border-cyan-500"
+                >
+                  {TRAPS.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.id} · {t.barrio}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-4">
+              <Card title="Resumen de dispositivo">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Ubicación
+                    </div>
+                    <div className="font-semibold text-slate-900">
+                      {trap.barrio}, Vicente López
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Estado general
+                    </div>
+                    <div className="inline-flex items-center gap-2">
+                      <span
+                        className={
+                          "w-2 h-2 rounded-full " +
+                          (trap.estado === "online"
+                            ? "bg-emerald-500"
+                            : trap.estado === "warning"
+                            ? "bg-amber-500"
+                            : "bg-rose-500")
+                        }
+                      ></span>
+                      <span className="capitalize text-slate-800">
+                        {trap.estado}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Señal WiFi
+                    </div>
+                    <div className="text-slate-800">-55 dBm (estable)</div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Última captura
+                    </div>
+                    <div className="text-slate-800">
+                      {trap.ultimaTransmision}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              <Card title="Ubicación en mapa (demo)">
+                <div className="h-40 rounded-xl hex-bg border border-slate-200 flex flex-col items-center justify-center text-xs text-slate-400">
+                  <div className="mb-1">Mini mapa / preview</div>
+                  <div className="text-[11px] text-slate-500">
+                    Zona: {trap.barrio}
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <Card title="Estado del dispositivo">
+                <dl className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-slate-100 text-slate-600 text-xs">
+                        CPU
+                      </span>
+                      <span>Uso de CPU</span>
+                    </div>
+                    <span className="font-semibold text-slate-900">23%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-slate-100 text-slate-600 text-xs">
+                        RAM
+                      </span>
+                      <span>Uso de memoria</span>
+                    </div>
+                    <span className="font-semibold text-slate-900">52%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-slate-100 text-slate-600 text-xs">
+                        °C
+                      </span>
+                      <span>Temperatura SoC</span>
+                    </div>
+                    <span className="font-semibold text-slate-900">54 °C</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-slate-100 text-slate-600 text-xs">
+                        V
+                      </span>
+                      <span>Voltaje</span>
+                    </div>
+                    <span className="font-semibold text-emerald-600">
+                      Normal
+                    </span>
+                  </div>
+                </dl>
+              </Card>
+
+              <Card title="Almacenamiento (SD)">
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span>Uso actual</span>
+                    <span className="font-semibold text-slate-900">61%</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100">
+                    <div className="h-2 w-3/5 rounded-full bg-cyan-500"></div>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Sugerido: rotar SD al 80% o cada 12 meses de uso continuo.
+                  </p>
+                </div>
+              </Card>
+
+              <Card title="Eventos técnicos recientes">
+                <ul className="text-sm text-slate-700 space-y-2">
+                  <li>22 abr · Reinicio normal del dispositivo</li>
+                  <li>18 abr · Señal WiFi baja durante 10 min</li>
+                  <li>10 abr · Temperatura alta (resuelta)</li>
+                </ul>
+              </Card>
+            </div>
+          </div>
+        );
+      }
+
+      function AlertsView() {
+        const [filtroEstado, setFiltroEstado] = useState("todas"); // todas | abierta | resuelta
+        const [filtroSeveridad, setFiltroSeveridad] = useState("todas"); // todas | alta | media | baja
+
+        const filtradas = ALERTS.filter((a) => {
+          if (filtroEstado !== "todas" && a.estado !== filtroEstado) return false;
+          if (filtroSeveridad !== "todas" && a.severidad !== filtroSeveridad)
+            return false;
+          return true;
+        });
+
+        const totalAbiertas = ALERTS.filter((a) => a.estado === "abierta").length;
+        const totalAlta = ALERTS.filter((a) => a.severidad === "alta").length;
+        const totalHoy = ALERTS.length; // mock
+
+        const colorSeveridad = (sev) =>
+          sev === "alta" ? "red" : sev === "media" ? "amber" : "green";
+
+        return (
+          <div className="space-y-4">
+            <PageHeader
+              title="Alertas"
+              subtitle="Listado de alertas con filtros por estado y severidad."
+            />
+
+            {/* Métricas rápidas */}
+            <div className="grid grid-cols-3 gap-3 max-w-md">
+              <Card title="Alertas registradas">
+                <div className="text-xl font-semibold text-slate-900">
+                  {totalHoy}
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Últimas 24 h (demo)
+                </p>
+              </Card>
+              <Card title="Alertas abiertas">
+                <div className="text-xl font-semibold text-amber-600">
+                  {totalAbiertas}
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Pendientes de revisar
+                </p>
+              </Card>
+              <Card title="Aedes detectado">
+                <div className="text-xl font-semibold text-rose-600">
+                  {totalAlta}
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Severidad alta
+                </p>
+              </Card>
+            </div>
+
+            {/* Filtros */}
+            <Card title="Filtros">
+              <div className="flex flex-wrap gap-3 items-center text-sm">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs uppercase tracking-wide text-slate-500">
+                    Estado
+                  </span>
+                  <div className="flex gap-1">
+                    {[
+                      { id: "todas", label: "Todas" },
+                      { id: "abierta", label: "Abiertas" },
+                      { id: "resuelta", label: "Resueltas" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setFiltroEstado(opt.id)}
+                        className={
+                          "px-2.5 py-1 rounded-full text-xs border " +
+                          (filtroEstado === opt.id
+                            ? "bg-slate-900 text-white border-slate-900"
+                            : "bg-white text-slate-600 border-slate-200")
+                        }
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <span className="text-xs uppercase tracking-wide text-slate-500">
+                    Severidad
+                  </span>
+                  <div className="flex gap-1">
+                    {[
+                      { id: "todas", label: "Todas" },
+                      { id: "alta", label: "Alta" },
+                      { id: "media", label: "Media" },
+                      { id: "baja", label: "Baja" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setFiltroSeveridad(opt.id)}
+                        className={
+                          "px-2.5 py-1 rounded-full text-xs border " +
+                          (filtroSeveridad === opt.id
+                            ? "bg-cyan-600 text-white border-cyan-600"
+                            : "bg-white text-slate-600 border-slate-200")
+                        }
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Listado de alertas */}
+            <Card title="Alertas">
+              {filtradas.length === 0 ? (
+                <p className="text-sm text-slate-500">
+                  No hay alertas que coincidan con los filtros seleccionados.
+                </p>
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {filtradas.map((a) => (
+                    <li
+                      key={a.id}
+                      className="py-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-semibold text-slate-900">
+                            {a.tipo} · Trampa {a.trapId}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-600">{a.detalle}</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          {a.hace}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-1 sm:justify-end">
+                        <Badge color={colorSeveridad(a.severidad)}>
+                          Severidad {a.severidad}
+                        </Badge>
+                        <Badge color={a.estado === "abierta" ? "amber" : "green"}>
+                          {a.estado === "abierta" ? "Pendiente" : "Resuelta"}
+                        </Badge>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          </div>
+        );
+      }
+
+      // ------------------------------
+      // App
+      // ------------------------------
+
+      function App() {
+        const [view, setView] = useState("dashboard");
+        const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+        let content = null;
+        if (view === "dashboard") content = <DashboardView />;
+        else if (view === "map") content = <MapView />;
+        else if (view === "traps") content = <TrapDetailView />;
+        else if (view === "alerts") content = <AlertsView />;
+
+        return (
+          <div className="h-full flex flex-col md:flex-row">
+            {/* Mobile first: top bar en mobile */}
+            <TopBar
+              currentView={view}
+              setView={setView}
+              mobileNavOpen={mobileNavOpen}
+              setMobileNavOpen={setMobileNavOpen}
+            />
+
+            {/* Sidebar solo en md+ */}
+            <Sidebar
+              currentView={view}
+              setView={setView}
+              className="hidden md:flex"
+            />
+
+            <main className="flex-1 hex-bg main-scroll overflow-y-auto">
+              <div className="max-w-6xl mx-auto px-4 py-4 md:px-6 md:py-6">
+                {content}
+              </div>
+            </main>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
