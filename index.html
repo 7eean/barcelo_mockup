@@ -55,79 +55,75 @@
         border-radius: 999px;
       }
 
-      /* Pines simples circulares */
-/* Pines tipo pin: círculo + triangulito */
-.trap-marker {
-  --marker-color: #22c55e; /* valor por defecto */
+      /* Pines tipo pin: círculo + triangulito */
+      .trap-marker {
+        --marker-color: #22c55e; /* valor por defecto */
 
-  position: relative;
-  width: 20px;
-  height: 46px; /* espacio para círculo + triángulo */
-}
+        position: relative;
+        width: 20px;
+        height: 46px; /* espacio para círculo + triángulo */
+      }
 
-/* Círculo principal */
-.trap-marker::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 18px;
-  height: 18px;
-  border-radius: 9999px;
+      /* Círculo principal */
+      .trap-marker::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 18px;
+        height: 18px;
+        border-radius: 9999px;
 
-  /* borde oscuro y glow */
-  background: var(--marker-color);
-  box-shadow:
-    0 0 0 2px #ffffff,               /* aro oscuro alrededor */
-    0 4px 10px rgba(255, 255, 255, 0.9); /* sombra hacia abajo */
-}
+        /* borde oscuro y glow */
+        background: var(--marker-color);
+        box-shadow:
+          0 0 0 2px #ffffff,
+          0 4px 10px rgba(255, 255, 255, 0.9);
+      }
 
-/* Triangulito inferior (punta del pin) */
-.trap-marker::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%) translateY(30%);
-  
+      /* Triangulito inferior (punta del pin) */
+      .trap-marker::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        transform: translateX(-50%) translateY(30%);
 
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 6px 8px 0 10px; /* alto 6px, ancho 8px */
-  border-color: var(--marker-color) transparent transparent transparent;
-}
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 6px 8px 0 10px;
+        border-color: var(--marker-color) transparent transparent transparent;
+      }
 
-/* Variantes de color por estado */
-.trap-marker--activo {
-  --marker-color: #32D06C; /* verde */
-}
+      /* Variantes de color por estado */
+      .trap-marker--activo {
+        --marker-color: #32d06c; /* verde */
+      }
 
-.trap-marker--15d {
-  --marker-color: #D3D7DF; /* gris claro */
-}
+      .trap-marker--15d {
+        --marker-color: #d3d7df; /* gris claro */
+      }
 
-.trap-marker--30d {
-  --marker-color: #8A919B; /* gris medio/oscuro */
-}
+      .trap-marker--30d {
+        --marker-color: #8a919b; /* gris medio/oscuro */
+      }
 
-.trap-marker--indeterminado {
-  --marker-color: #1E293B; /* casi negro */
-}
+      .trap-marker--indeterminado {
+        --marker-color: #1e293b; /* casi negro */
+      }
 
-/* Aedes detectado: rojo fuerte y bien visible */
-.trap-marker--aedes {
-  --marker-color: #E5484D;
-}
+      /* Aedes detectado: rojo fuerte y bien visible */
+      .trap-marker--aedes {
+        --marker-color: #e5484d;
+      }
 
-.leaflet-pane,
-.leaflet-top,
-.leaflet-bottom {
-  z-index: 10 !important;
-}
-
-
+      .leaflet-pane,
+      .leaflet-top,
+      .leaflet-bottom {
+        z-index: 10 !important;
+      }
     </style>
   </head>
   <body class="bg-slate-50">
@@ -144,15 +140,13 @@
         { id: "map", label: "Mapa" },
         { id: "traps", label: "Trampas" },
         { id: "alerts", label: "Alertas" },
+        { id: "new-spot", label: "Agregar nuevo SPOT" }, // NUEVO
       ];
 
       // ------------------------------
-      // Datos de ejemplo de trampas
-      // Modelo C: estado + flag aedes
-      // estados: "activo", "15d", "30d", "indeterminado"
-      // aedes: true => pin rojo
+      // Datos de ejemplo de trampas (base)
       // ------------------------------
-      const TRAPS = [
+      const INITIAL_TRAPS = [
         {
           id: "T-10",
           lat: -34.523,
@@ -236,7 +230,7 @@
         },
         {
           id: "T-150",
-          lat: -34.500,
+          lat: -34.5,
           lng: -58.479,
           estado: "activo",
           barrio: "Florida",
@@ -245,7 +239,7 @@
         },
         {
           id: "T-540",
-          lat: -34.530,
+          lat: -34.53,
           lng: -58.536,
           estado: "activo",
           barrio: "Florida",
@@ -254,7 +248,7 @@
         },
         {
           id: "T-250",
-          lat: -34.540,
+          lat: -34.54,
           lng: -58.526,
           estado: "activo",
           barrio: "Florida",
@@ -280,7 +274,7 @@
           aedes: false,
         },
         {
-          id: "T-540",
+          id: "T-540b",
           lat: -34.523,
           lng: -58.516,
           estado: "activo",
@@ -355,7 +349,7 @@
           hace: "ayer",
         },
         {
-          id: 1,
+          id: 5,
           trapId: "T-10",
           tipo: "Detección",
           detalle: "Aedes aegypti detectado en captura reciente.",
@@ -364,7 +358,7 @@
           hace: "hace 3 h",
         },
         {
-          id: 1,
+          id: 6,
           trapId: "T-10",
           tipo: "Detección",
           detalle: "Aedes aegypti detectado en captura reciente.",
@@ -374,20 +368,20 @@
         },
       ];
 
-      // Stats de demo para Aedes / Mosquitos / Otros (luego se pueden conectar a datos reales)
+      // Stats de demo
       const DEMO_STATS = {
-        aedes: 7, // por ejemplo, total de Aedes detectados (demo)
-        mosquitos: 42, // otros mosquitos (demo)
-        otros: 15, // otros insectos (demo)
+        aedes: 7,
+        mosquitos: 42,
+        otros: 15,
       };
 
-      // Bounds aproximados de Vicente López (solo para centrar al inicio)
+      // Bounds aproximados de Vicente López
       const BOUNDS_VICENTE_LOPEZ = [
-        [-34.559, -58.516], // suroeste
-        [-34.464, -58.44], // noreste
+        [-34.559, -58.516],
+        [-34.464, -58.44],
       ];
 
-      // Tile layer oscuro de CARTO (sin API key)
+      // Tile layer oscuro de CARTO
       const TILE_URL =
         "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
       const TILE_ATTRIBUTION =
@@ -395,29 +389,27 @@
 
       // Crear icono tipo gota según estado + AEDES
       function createTrapIcon(trap) {
-  // Si tiene Aedes, siempre rojo
-  let variant = "aedes";
+        // Si tiene Aedes, siempre rojo
+        let variant = "aedes";
 
-  if (!trap.aedes) {
-    if (trap.estado === "activo" || trap.estado === "online") {
-      variant = "activo";
-    } else if (trap.estado === "15d" || trap.estado === "warning") {
-      variant = "15d";
-    } else if (trap.estado === "30d" || trap.estado === "offline") {
-      variant = "30d";
-    } else {
-      variant = "indeterminado";
-    }
-  }
+        if (!trap.aedes) {
+          if (trap.estado === "activo" || trap.estado === "online") {
+            variant = "activo";
+          } else if (trap.estado === "15d" || trap.estado === "warning") {
+            variant = "15d";
+          } else if (trap.estado === "30d" || trap.estado === "offline") {
+            variant = "30d";
+          } else {
+            variant = "indeterminado";
+          }
+        }
 
-  return L.divIcon({
-    className: `trap-marker trap-marker--${variant}`,
-    iconSize: [20, 26],   // círculo (18) + triángulo (6)
-    iconAnchor: [10, 26], // 👈 la punta del triángulo es el punto real
-  });
-}
-
-
+        return L.divIcon({
+          className: `trap-marker trap-marker--${variant}`,
+          iconSize: [20, 26], // círculo (18) + triángulo (6)
+          iconAnchor: [10, 26],
+        });
+      }
 
       // ------------------------------
       // Layout / componentes base
@@ -473,7 +465,7 @@
         );
       }
 
-      // 🔹 Barra superior para MOBILE (mobile first) con hamburguesa
+      // 🔹 Barra superior para MOBILE
       function TopBar({
         currentView,
         setView,
@@ -604,9 +596,9 @@
       }
 
       // ------------------------------
-      // Mini-mapa en Dashboard (CARTO dark)
+      // Mini-mapa en Dashboard
       // ------------------------------
-      function DashboardMiniMap() {
+      function DashboardMiniMap({ traps }) {
         const miniMapRef = useRef(null);
 
         useEffect(() => {
@@ -622,17 +614,14 @@
             keyboard: false,
           });
 
-          // Basemap CARTO dark
           L.tileLayer(TILE_URL, {
             maxZoom: 20,
             attribution: TILE_ATTRIBUTION,
           }).addTo(map);
 
-          // Centrado inicial en Vicente López pero sin acotar
           map.fitBounds(BOUNDS_VICENTE_LOPEZ);
 
-          // Trampas con icono custom tipo gota
-          TRAPS.forEach((trap) => {
+          traps.forEach((trap) => {
             const icon = createTrapIcon(trap);
             L.marker([trap.lat, trap.lng], { icon })
               .addTo(map)
@@ -642,7 +631,7 @@
           return () => {
             map.remove();
           };
-        }, []);
+        }, [traps]);
 
         return (
           <div
@@ -653,500 +642,465 @@
       }
 
       // ------------------------------
-      // Vistas
+      // Dashboard
       // ------------------------------
+      function DashboardView({ traps }) {
+        const activos = traps.filter((t) => t.estado === "activo").length;
 
-      function DashboardView() {
-  const activos = TRAPS.filter((t) => t.estado === "activo").length;
-
-  return (
-    <div className="space-y-4">
-      <PageHeader
-        title="Resumen general - Plataforma Barceló"
-        subtitle="Actividad del sistema de trampas Barceló en Vicente López."
-      />
-
-      {/* Métricas principales */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
-        <Card title="Aedes">
-          <div className="text-2xl md:text-3xl font-semibold text-rose-600">
-            {DEMO_STATS.aedes}
-          </div>
-          <p className="text-xs text-slate-500 mt-1">Últimas 24 h (demo)</p>
-        </Card>
-        <Card title="Mosquitos">
-          <div className="text-2xl md:text-3xl font-semibold text-emerald-600">
-            {DEMO_STATS.mosquitos}
-          </div>
-          <p className="text-xs text-slate-500 mt-1">Otras especies (demo)</p>
-        </Card>
-        <Card title="Otro">
-          <div className="text-2xl md:text-3xl font-semibold text-slate-700">
-            {DEMO_STATS.otros}
-          </div>
-          <p className="text-xs text-slate-500 mt-1">Otros insectos (demo)</p>
-        </Card>
-        <Card title="Total trampas activas">
-          <div className="text-2xl md:text-3xl font-semibold text-slate-900">
-            {activos}
-          </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Dispositivos en estado activo
-          </p>
-        </Card>
-      </div>
-
-      {/* Mapa de red de trampas - full width */}
-      <Card title="Red de trampas">
-        <DashboardMiniMap />
-        <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
-          <span>
-            🔴 Aedes detectado · 🟢 Activo · ⚪︎ &gt;15 días sin datos · ⚫︎ &gt;30
-            días sin datos · ⬛ Indeterminado
-          </span>
-          <span>{TRAPS.length} trampas</span>
-        </div>
-      </Card>
-
-      {/* Última foto (izquierda) + Alertas recientes (derecha) */}
-      <div className="grid grid-cols-1 lg:grid-cols-[2.2fr_1fr] gap-4">
-        <Card title="Última foto procesada">
-          <div className="rounded-xl overflow-hidden h-56 md:h-72 bg-black flex items-center justify-center">
-            <img
-              src="./assets/ultima-foto-procesada.jpg"
-              alt="Última imagen procesada por IA"
-              className="w-full h-full object-cover"
+        return (
+          <div className="space-y-4">
+            <PageHeader
+              title="Resumen general - Plataforma Barceló"
+              subtitle="Actividad del sistema de trampas Barceló en Vicente López."
             />
-          </div>
 
-          <div className="flex justify-between items-center mt-2 text-[11px] text-slate-500">
-            <span>Generada por IA · Trampa T-10</span>
-            <span>Procesada hace 3 h</span>
-          </div>
-        </Card>
-
-        <Card title="Alertas recientes">
-          <ul className="text-sm text-slate-700 space-y-2">
-            <li className="flex justify-between">
-              <span>
-                <span className="font-medium">T-10</span> · Aedes detectado
-              </span>
-              <span className="text-xs text-slate-400">hace 3 h</span>
-            </li>
-            <li className="flex justify-between">
-              <span>
-                <span className="font-medium">T-20</span> · &gt;15 días sin datos
-              </span>
-              <span className="text-xs text-slate-400">hace 18 días</span>
-            </li>
-            <li className="flex justify-between">
-              <span>
-                <span className="font-medium">T-30</span> · &gt;30 días sin datos
-              </span>
-              <span className="text-xs text-slate-400">hace 32 días</span>
-            </li>
-            <li className="flex justify-between">
-              <span>
-                <span className="font-medium">T-10</span> · Aedes detectado
-              </span>
-              <span className="text-xs text-slate-400">hace 3 h</span>
-            </li>
-            <li className="flex justify-between">
-              <span>
-                <span className="font-medium">T-20</span> · &gt;15 días sin datos
-              </span>
-              <span className="text-xs text-slate-400">hace 18 días</span>
-            </li>
-            <li className="flex justify-between">
-              <span>
-                <span className="font-medium">T-30</span> · &gt;30 días sin datos
-              </span>
-              <span className="text-xs text-slate-400">hace 32 días</span>
-            </li>
-            <li className="flex justify-between">
-              <span>
-                <span className="font-medium">T-10</span> · Aedes detectado
-              </span>
-              <span className="text-xs text-slate-400">hace 3 h</span>
-            </li>
-            <li className="flex justify-between">
-              <span>
-                <span className="font-medium">T-20</span> · &gt;15 días sin datos
-              </span>
-              <span className="text-xs text-slate-400">hace 18 días</span>
-            </li>
-            <li className="flex justify-between">
-              <span>
-                <span className="font-medium">T-30</span> · &gt;30 días sin datos
-              </span>
-              <span className="text-xs text-slate-400">hace 32 días</span>
-            </li>
-            <li className="flex justify-between">
-              <span>
-                <span className="font-medium">T-20</span> · &gt;15 días sin datos
-              </span>
-              <span className="text-xs text-slate-400">hace 18 días</span>
-            </li>
-            <li className="flex justify-between">
-              <span>
-                <span className="font-medium">T-30</span> · &gt;30 días sin datos
-              </span>
-              <span className="text-xs text-slate-400">hace 32 días</span>
-            </li>
-          </ul>
-        </Card>
-      </div>
-
-      {/* Distribución de estado - full width al final */}
-      <Card title="Distribución de estado (demo)">
-        {(() => {
-          const activos = TRAPS.filter((t) => t.estado === "activo").length;
-          const mas15 = TRAPS.filter((t) => t.estado === "15d").length;
-          const mas30 = TRAPS.filter((t) => t.estado === "30d").length;
-          const indet = TRAPS.filter(
-            (t) => t.estado === "indeterminado"
-          ).length;
-          const total = TRAPS.length || 1;
-
-          return (
-            <div className="space-y-2 text-sm text-slate-700">
-              <div className="flex items-center gap-4">
-  <span className="min-w-[140px]">Activos</span>
-  <div className="flex-1 h-2 rounded-full bg-slate-100">
-    <div
-      className="h-2 rounded-full bg-emerald-400"
-      style={{ width: `${(activos / total) * 100}%` }}
-    ></div>
-  </div>
-</div>
-
-              <div className="flex justify-between gap-4">
-                <span className="min-w-[140px]">&gt;15 días sin datos</span>
-                <div className="flex-1 h-2 rounded-full bg-slate-100">
-                  <div
-                    className="h-2 rounded-full bg-slate-400"
-                    style={{ width: `${(mas15 / total) * 100}%` }}
-                  ></div>
+            {/* Métricas principales */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+              <Card title="Aedes">
+                <div className="text-2xl md:text-3xl font-semibold text-rose-600">
+                  {DEMO_STATS.aedes}
                 </div>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="min-w-[140px]">&gt;30 días sin datos</span>
-                <div className="flex-1 h-2 rounded-full bg-slate-100">
-                  <div
-                    className="h-2 rounded-full bg-slate-500"
-                    style={{ width: `${(mas30 / total) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="min-w-[140px]">Indeterminado</span>
-                <div className="flex-1 h-2 rounded-full bg-slate-100">
-                  <div
-                    className="h-2 rounded-full bg-slate-700"
-                    style={{ width: `${(indet / total) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
-      </Card>
-    </div>
-  );
-}
-
-
-      // ------------------------------
-      // Mapa con filtros + deep link a Trampas
-      // ------------------------------
-      function MapView({ selectedTrapId, setSelectedTrapId, setView }) {
-  const mapRef = useRef(null);
-  const [selectedTrap, setSelectedTrap] = useState(
-    TRAPS.find((t) => t.id === selectedTrapId) || TRAPS[0]
-  );
-  const [estadoFilter, setEstadoFilter] = useState("todos"); // todos | activo | 15d | 30d | indeterminado | aedes
-  const [showPhotoModal, setShowPhotoModal] = useState(false); // 👈 nuevo estado para el modal
-
-  // Si cambia el selectedTrapId global, actualizamos la tarjeta
-  useEffect(() => {
-    const trap = TRAPS.find((t) => t.id === selectedTrapId) || TRAPS[0];
-    setSelectedTrap(trap);
-  }, [selectedTrapId]);
-
-  useEffect(() => {
-    if (!mapRef.current || !window.L) return;
-
-    const map = L.map(mapRef.current);
-
-    // Basemap CARTO dark
-    L.tileLayer(TILE_URL, {
-      maxZoom: 20,
-      attribution: TILE_ATTRIBUTION,
-    }).addTo(map);
-
-    // Filtrado por estado / Aedes
-    let trapsToShow;
-    if (estadoFilter === "todos") {
-      trapsToShow = TRAPS;
-    } else if (estadoFilter === "aedes") {
-      trapsToShow = TRAPS.filter((t) => t.aedes);
-    } else {
-      trapsToShow = TRAPS.filter((t) => t.estado === estadoFilter);
-    }
-
-    // Centrado inicial en Vicente López
-    map.fitBounds(BOUNDS_VICENTE_LOPEZ);
-
-    // Trampa actual (para centrar)
-    const currentTrap =
-      TRAPS.find((t) => t.id === selectedTrapId) || trapsToShow[0];
-
-    // Marcadores
-    trapsToShow.forEach((trap) => {
-      const icon = createTrapIcon(trap);
-      const marker = L.marker([trap.lat, trap.lng], { icon }).addTo(map);
-      marker.bindPopup(
-        `${trap.id} · ${trap.barrio}${trap.aedes ? " · Aedes detectado" : ""}`
-      );
-      marker.on("click", () => {
-        setSelectedTrap(trap);
-      });
-
-      // Abrimos popup y centramos si es la seleccionada
-      if (currentTrap && currentTrap.id === trap.id) {
-        marker.openPopup();
-        map.setView([trap.lat, trap.lng], 16);
-      }
-    });
-
-    return () => {
-      map.remove();
-    };
-  }, [estadoFilter, selectedTrapId]);
-
-  const estadoInfo =
-    ESTADO_CONFIG[selectedTrap?.estado] || ESTADO_CONFIG["indeterminado"];
-
-  return (
-    <div className="space-y-2">
-      <PageHeader
-        title="Mapa de trampas"
-        subtitle="Visualización geográfica de las trampas dentro de Vicente López."
-      />
-
-      {/* Filtros por estado */}
-      <div className="flex flex-wrap gap-2 mb-1">
-        {[
-          { id: "todos", label: "Todas" },
-          { id: "aedes", label: "Aedes" },
-          { id: "activo", label: "Activas" },
-          { id: "15d", label: ">15 días sin datos" },
-          { id: "30d", label: ">30 días sin datos" },
-          { id: "indeterminado", label: "Indeterminado" },
-        ].map((opt) => (
-          <button
-            key={opt.id}
-            onClick={() => setEstadoFilter(opt.id)}
-            className={
-              "px-3 py-1.5 rounded-full text-xs font-medium border " +
-              (estadoFilter === opt.id
-                ? "bg-slate-900 text-white border-slate-900"
-                : "bg-white text-slate-700 border-slate-200")
-            }
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,0.8fr)] gap-4">
-        {/* Mapa real dark con Leaflet, más grande */}
-        <Card title="Mapa Vicente López">
-          <div
-            ref={mapRef}
-            className="h-96 md:h-[480px] rounded-xl border border-slate-200 overflow-hidden"
-          ></div>
-        </Card>
-
-        <Card title="Trampa seleccionada">
-          <div className="space-y-2 text-sm">
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-500">
-                ID
-              </div>
-              <div className="font-semibold text-slate-900">
-                {selectedTrap?.id}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-500">
-                Barrio
-              </div>
-              <div className="text-slate-700">{selectedTrap?.barrio}</div>
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-500">
-                Estado
-              </div>
-              <div className="inline-flex flex-col gap-1">
-                <div className="inline-flex items-center gap-1">
-                  <span
-                    className={"w-2 h-2 rounded-full " + estadoInfo.dot}
-                  ></span>
-                  <span className="text-slate-800">{estadoInfo.label}</span>
-                </div>
-                <p className="text-[11px] text-slate-500">
-                  {estadoInfo.long}
+                <p className="text-xs text-slate-500 mt-1">
+                  Últimas 24 h (demo)
                 </p>
-              </div>
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-500">
-                Aedes
-              </div>
-              <div className="text-slate-700">
-                {selectedTrap?.aedes
-                  ? "Aedes detectado en las últimas capturas (demo)."
-                  : "Sin detección reciente de Aedes (demo)."}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-wide text-slate-500">
-                Última transmisión
-              </div>
-              <div className="text-slate-700">
-                {selectedTrap?.ultimaTransmision}
-              </div>
+              </Card>
+              <Card title="Mosquitos">
+                <div className="text-2xl md:text-3xl font-semibold text-emerald-600">
+                  {DEMO_STATS.mosquitos}
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Otras especies (demo)
+                </p>
+              </Card>
+              <Card title="Otro">
+                <div className="text-2xl md:text-3xl font-semibold text-slate-700">
+                  {DEMO_STATS.otros}
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Otros insectos (demo)
+                </p>
+              </Card>
+              <Card title="Total trampas activas">
+                <div className="text-2xl md:text-3xl font-semibold text-slate-900">
+                  {activos}
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Dispositivos en estado activo
+                </p>
+              </Card>
             </div>
 
-            {/* Botón existente */}
-            <button
-              className="mt-3 w-full py-2 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800"
-              onClick={() => {
-                if (selectedTrap) {
-                  setSelectedTrapId(selectedTrap.id);
-                }
-                setView("traps");
-              }}
-            >
-              Ver detalle de trampa
-            </button>
+            {/* Mapa de red de trampas - full width */}
+            <Card title="Red de trampas">
+              <DashboardMiniMap traps={traps} />
+              <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
+                <span>
+                  🔴 Aedes detectado · 🟢 Activo · ⚪︎ &gt;15 días sin datos · ⚫︎
+                  &gt;30 días sin datos · ⬛ Indeterminado
+                </span>
+                <span>{traps.length} trampas</span>
+              </div>
+            </Card>
 
-            {/* NUEVO BOTÓN: abre modal con última foto */}
-            <button
-              className="mt-2 w-full py-2 rounded-xl border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50"
-              onClick={() => setShowPhotoModal(true)}
-            >
-              Ver última foto procesada
-            </button>
+            {/* Última foto + Alertas recientes */}
+            <div className="grid grid-cols-1 lg:grid-cols-[2.2fr_1fr] gap-4">
+              <Card title="Última foto procesada">
+                <div className="rounded-xl overflow-hidden h-56 md:h-72 bg-black flex items-center justify-center">
+                  <img
+                    src="./assets/ultima-foto-procesada.jpg"
+                    alt="Última imagen procesada por IA"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <div className="flex justify-between items-center mt-2 text-[11px] text-slate-500">
+                  <span>Generada por IA · Trampa T-10</span>
+                  <span>Procesada hace 3 h</span>
+                </div>
+              </Card>
+
+              <Card title="Alertas recientes">
+                <ul className="text-sm text-slate-700 space-y-2">
+                  <li className="flex justify-between">
+                    <span>
+                      <span className="font-medium">T-10</span> · Aedes
+                      detectado
+                    </span>
+                    <span className="text-xs text-slate-400">hace 3 h</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>
+                      <span className="font-medium">T-20</span> · &gt;15 días sin
+                      datos
+                    </span>
+                    <span className="text-xs text-slate-400">hace 18 días</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>
+                      <span className="font-medium">T-30</span> · &gt;30 días sin
+                      datos
+                    </span>
+                    <span className="text-xs text-slate-400">hace 32 días</span>
+                  </li>
+                  {/* resto dummy */}
+                </ul>
+              </Card>
+            </div>
+
+            {/* Distribución de estado - full width */}
+            <Card title="Distribución de estado (demo)">
+              {(() => {
+                const activos = traps.filter((t) => t.estado === "activo").length;
+                const mas15 = traps.filter((t) => t.estado === "15d").length;
+                const mas30 = traps.filter((t) => t.estado === "30d").length;
+                const indet = traps.filter(
+                  (t) => t.estado === "indeterminado"
+                ).length;
+                const total = traps.length || 1;
+
+                return (
+                  <div className="space-y-2 text-sm text-slate-700">
+                    <div className="flex items-center gap-4">
+                      <span className="min-w-[140px]">Activos</span>
+                      <div className="flex-1 h-2 rounded-full bg-slate-100">
+                        <div
+                          className="h-2 rounded-full bg-emerald-400"
+                          style={{
+                            width: `${(activos / total) * 100}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between gap-4">
+                      <span className="min-w-[140px]">
+                        &gt;15 días sin datos
+                      </span>
+                      <div className="flex-1 h-2 rounded-full bg-slate-100">
+                        <div
+                          className="h-2 rounded-full bg-slate-400"
+                          style={{
+                            width: `${(mas15 / total) * 100}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between gap-4">
+                      <span className="min-w-[140px]">
+                        &gt;30 días sin datos
+                      </span>
+                      <div className="flex-1 h-2 rounded-full bg-slate-100">
+                        <div
+                          className="h-2 rounded-full bg-slate-500"
+                          style={{
+                            width: `${(mas30 / total) * 100}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between gap-4">
+                      <span className="min-w-[140px]">Indeterminado</span>
+                      <div className="flex-1 h-2 rounded-full bg-slate-100">
+                        <div
+                          className="h-2 rounded-full bg-slate-700"
+                          style={{
+                            width: `${(indet / total) * 100}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </Card>
           </div>
-        </Card>
-      </div>
-
-      {/* MODAL DE FOTO */}
-{/* MODAL DE FOTO (reemplazar el bloque anterior completo) */}
-{showPhotoModal && (
-  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/70">
-    <div className="relative bg-white rounded-2xl shadow-xl max-w-4xl w-[92%] overflow-hidden">
-
-      {/* BOTÓN X flotante */}
-      <button
-        onClick={() => setShowPhotoModal(false)}
-        className="absolute top-3 right-3 z-[9999] p-2 rounded-full bg-white/80 hover:bg-white shadow-md"
-        aria-label="Cerrar modal"
-      >
-        <svg
-          className="w-5 h-5 text-slate-700"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
-
-      {/* CONTENEDOR CON ZOOM */}
-      <PhotoViewer />
-    </div>
-  </div>
-)}
-
-
-    </div>
-  );
-}
-
-// Pequeño visor de foto con zoom + descarga
-function PhotoViewer() {
-  const [zoom, setZoom] = React.useState(1);
-
-  const handleWheel = (e) => {
-    e.preventDefault(); // evita que scrollee la página
-    setZoom((current) => {
-      const delta = e.deltaY < 0 ? 0.1 : -0.1;
-      const next = current + delta;
-      return Math.min(3, Math.max(1, next)); // entre 1x y 3x
-    });
-  };
-
-  const resetZoom = () => setZoom(1);
-
-  return (
-    <>
-      <div
-        className="bg-black max-h-[75vh] flex items-center justify-center overflow-auto"
-        onWheel={handleWheel}
-      >
-        <img
-          src="./assets/ultima-foto-procesada.jpg"
-          alt="Última imagen procesada por IA"
-          className="w-auto object-contain"
-          style={{
-            transform: `scale(${zoom})`,
-            transformOrigin: "center center",
-          }}
-        />
-      </div>
-
-      {/* Footer del modal con acciones */}
-      <div className="flex flex-wrap gap-2 items-center justify-between px-4 py-3 text-[11px] text-slate-500 bg-slate-50 border-t border-slate-200">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-          <span>Generada por IA · Trampa T-10 · demo (en futuro desde AWS)</span>
-          <span>Procesada hace 3 h</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {zoom !== 1 && (
-            <button
-              onClick={resetZoom}
-              className="px-2 py-1 rounded-full border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-100"
-            >
-              Reiniciar zoom
-            </button>
-          )}
-
-          {/* Descargar imagen (Opción C) */}
-          <a
-            href="./assets/ultima-foto-procesada.jpg"
-            download="ultima-foto-procesada.jpg"
-            className="px-3 py-1.5 rounded-full bg-slate-900 text-white text-[11px] font-medium hover:bg-slate-800"
-          >
-            Descargar imagen
-          </a>
-        </div>
-      </div>
-    </>
-  );
-}
-
-
+        );
+      }
 
       // ------------------------------
-      // Timeline de estado para Trampas
+      // Mapa con filtros + modal foto
+      // ------------------------------
+      function MapView({ traps, selectedTrapId, setSelectedTrapId, setView }) {
+        const mapRef = useRef(null);
+        const [selectedTrap, setSelectedTrap] = useState(
+          traps.find((t) => t.id === selectedTrapId) || traps[0]
+        );
+        const [estadoFilter, setEstadoFilter] = useState("todos");
+        const [showPhotoModal, setShowPhotoModal] = useState(false);
+
+        useEffect(() => {
+          const trap =
+            traps.find((t) => t.id === selectedTrapId) || traps[0];
+          setSelectedTrap(trap);
+        }, [selectedTrapId, traps]);
+
+        useEffect(() => {
+          if (!mapRef.current || !window.L) return;
+
+          const map = L.map(mapRef.current);
+
+          L.tileLayer(TILE_URL, {
+            maxZoom: 20,
+            attribution: TILE_ATTRIBUTION,
+          }).addTo(map);
+
+          let trapsToShow;
+          if (estadoFilter === "todos") {
+            trapsToShow = traps;
+          } else if (estadoFilter === "aedes") {
+            trapsToShow = traps.filter((t) => t.aedes);
+          } else {
+            trapsToShow = traps.filter((t) => t.estado === estadoFilter);
+          }
+
+          map.fitBounds(BOUNDS_VICENTE_LOPEZ);
+
+          const currentTrap =
+            traps.find((t) => t.id === selectedTrapId) || trapsToShow[0];
+
+          trapsToShow.forEach((trap) => {
+            const icon = createTrapIcon(trap);
+            const marker = L.marker([trap.lat, trap.lng], { icon }).addTo(map);
+            marker.bindPopup(
+              `${trap.id} · ${trap.barrio}${
+                trap.aedes ? " · Aedes detectado" : ""
+              }`
+            );
+            marker.on("click", () => {
+              setSelectedTrap(trap);
+            });
+
+            if (currentTrap && currentTrap.id === trap.id) {
+              marker.openPopup();
+              map.setView([trap.lat, trap.lng], 16);
+            }
+          });
+
+          return () => {
+            map.remove();
+          };
+        }, [estadoFilter, selectedTrapId, traps]);
+
+        const estadoInfo =
+          ESTADO_CONFIG[selectedTrap?.estado] ||
+          ESTADO_CONFIG["indeterminado"];
+
+        return (
+          <div className="space-y-2">
+            <PageHeader
+              title="Mapa de trampas"
+              subtitle="Visualización geográfica de las trampas dentro de Vicente López."
+            />
+
+            {/* Filtros por estado */}
+            <div className="flex flex-wrap gap-2 mb-1">
+              {[
+                { id: "todos", label: "Todas" },
+                { id: "aedes", label: "Aedes" },
+                { id: "activo", label: "Activas" },
+                { id: "15d", label: ">15 días sin datos" },
+                { id: "30d", label: ">30 días sin datos" },
+                { id: "indeterminado", label: "Indeterminado" },
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => setEstadoFilter(opt.id)}
+                  className={
+                    "px-3 py-1.5 rounded-full text-xs font-medium border " +
+                    (estadoFilter === opt.id
+                      ? "bg-slate-900 text-white border-slate-900"
+                      : "bg-white text-slate-700 border-slate-200")
+                  }
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,0.8fr)] gap-4">
+              {/* Mapa real */}
+              <Card title="Mapa Vicente López">
+                <div
+                  ref={mapRef}
+                  className="h-96 md:h-[480px] rounded-xl border border-slate-200 overflow-hidden"
+                ></div>
+              </Card>
+
+              <Card title="Trampa seleccionada">
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      ID
+                    </div>
+                    <div className="font-semibold text-slate-900">
+                      {selectedTrap?.id}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Barrio
+                    </div>
+                    <div className="text-slate-700">
+                      {selectedTrap?.barrio}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Estado
+                    </div>
+                    <div className="inline-flex flex-col gap-1">
+                      <div className="inline-flex items-center gap-1">
+                        <span
+                          className={"w-2 h-2 rounded-full " + estadoInfo.dot}
+                        ></span>
+                        <span className="text-slate-800">
+                          {estadoInfo.label}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500">
+                        {estadoInfo.long}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Aedes
+                    </div>
+                    <div className="text-slate-700">
+                      {selectedTrap?.aedes
+                        ? "Aedes detectado en las últimas capturas (demo)."
+                        : "Sin detección reciente de Aedes (demo)."}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                      Última transmisión
+                    </div>
+                    <div className="text-slate-700">
+                      {selectedTrap?.ultimaTransmision}
+                    </div>
+                  </div>
+
+                  {/* Botón existente */}
+                  <button
+                    className="mt-3 w-full py-2 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800"
+                    onClick={() => {
+                      if (selectedTrap) {
+                        setSelectedTrapId(selectedTrap.id);
+                      }
+                      setView("traps");
+                    }}
+                  >
+                    Ver detalle de trampa
+                  </button>
+
+                  {/* Botón modal foto */}
+                  <button
+                    className="mt-2 w-full py-2 rounded-xl border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50"
+                    onClick={() => setShowPhotoModal(true)}
+                  >
+                    Ver última foto procesada
+                  </button>
+                </div>
+              </Card>
+            </div>
+
+            {/* MODAL DE FOTO */}
+            {showPhotoModal && (
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/70">
+                <div className="relative bg-white rounded-2xl shadow-xl max-w-4xl w-[92%] overflow-hidden">
+                  <button
+                    onClick={() => setShowPhotoModal(false)}
+                    className="absolute top-3 right-3 z-[9999] p-2 rounded-full bg-white/80 hover:bg-white shadow-md"
+                    aria-label="Cerrar modal"
+                  >
+                    <svg
+                      className="w-5 h-5 text-slate-700"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+
+                  <PhotoViewer />
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // Visor de foto
+      function PhotoViewer() {
+        const [zoom, setZoom] = React.useState(1);
+
+        const handleWheel = (e) => {
+          e.preventDefault();
+          setZoom((current) => {
+            const delta = e.deltaY < 0 ? 0.1 : -0.1;
+            const next = current + delta;
+            return Math.min(3, Math.max(1, next));
+          });
+        };
+
+        const resetZoom = () => setZoom(1);
+
+        return (
+          <>
+            <div
+              className="bg-black max-h-[75vh] flex items-center justify-center overflow-auto"
+              onWheel={handleWheel}
+            >
+              <img
+                src="./assets/ultima-foto-procesada.jpg"
+                alt="Última imagen procesada por IA"
+                className="w-auto object-contain"
+                style={{
+                  transform: `scale(${zoom})`,
+                  transformOrigin: "center center",
+                }}
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2 items-center justify-between px-4 py-3 text-[11px] text-slate-500 bg-slate-50 border-t border-slate-200">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                <span>
+                  Generada por IA · Trampa T-10 · demo (en futuro desde AWS)
+                </span>
+                <span>Procesada hace 3 h</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {zoom !== 1 && (
+                  <button
+                    onClick={resetZoom}
+                    className="px-2 py-1 rounded-full border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-100"
+                  >
+                    Reiniciar zoom
+                  </button>
+                )}
+
+                <a
+                  href="./assets/ultima-foto-procesada.jpg"
+                  download="ultima-foto-procesada.jpg"
+                  className="px-3 py-1.5 rounded-full bg-slate-900 text-white text-[11px] font-medium hover:bg-slate-800"
+                >
+                  Descargar imagen
+                </a>
+              </div>
+            </div>
+          </>
+        );
+      }
+
+      // ------------------------------
+      // Timeline de estado
       // ------------------------------
       function TrapTimeline({ trap }) {
         const base = [
@@ -1212,7 +1166,6 @@ function PhotoViewer() {
 
         const events = [...base, ...extra];
 
-        // Si hay Aedes, agregamos un evento específico al principio
         if (trap.aedes) {
           events.unshift({
             hace: "Hoy",
@@ -1243,11 +1196,11 @@ function PhotoViewer() {
       }
 
       // ------------------------------
-      // Trampas (detalle) con selector + timeline + "Ver en mapa"
+      // Trampas (detalle)
       // ------------------------------
-      function TrapDetailView({ selectedTrapId, setSelectedTrapId, setView }) {
+      function TrapDetailView({ traps, selectedTrapId, setSelectedTrapId, setView }) {
         const trap =
-          TRAPS.find((t) => t.id === selectedTrapId) || TRAPS[0];
+          traps.find((t) => t.id === selectedTrapId) || traps[0];
         const estadoInfo =
           ESTADO_CONFIG[trap.estado] || ESTADO_CONFIG["indeterminado"];
 
@@ -1274,7 +1227,7 @@ function PhotoViewer() {
                     onChange={(e) => setSelectedTrapId(e.target.value)}
                     className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white shadow-sm focus:outline-nonefocus:ring-2 focus:ring-cyan-500/60 focus:border-cyan-500"
                   >
-                    {TRAPS.map((t) => (
+                    {traps.map((t) => (
                       <option key={t.id} value={t.id}>
                         {t.id} · {t.barrio}
                       </option>
@@ -1420,9 +1373,12 @@ function PhotoViewer() {
         );
       }
 
+      // ------------------------------
+      // Alertas
+      // ------------------------------
       function AlertsView() {
-        const [filtroEstado, setFiltroEstado] = useState("todas"); // todas | abierta | resuelta
-        const [filtroSeveridad, setFiltroSeveridad] = useState("todas"); // todas | alta | media | baja
+        const [filtroEstado, setFiltroEstado] = useState("todas");
+        const [filtroSeveridad, setFiltroSeveridad] = useState("todas");
 
         const filtradas = ALERTS.filter((a) => {
           if (filtroEstado !== "todas" && a.estado !== filtroEstado) return false;
@@ -1574,20 +1530,285 @@ function PhotoViewer() {
       }
 
       // ------------------------------
+      // NEW SPOT VIEW (opción B: click en mini-mapa)
+      // ------------------------------
+      function NewSpotView({ traps, setTraps, setSelectedTrapId, setView }) {
+        const [formData, setFormData] = useState({
+          id: "",
+          barrio: "",
+          estado: "activo",
+          aedes: false,
+          lat: "",
+          lng: "",
+          ultimaTransmision: "sin datos",
+        });
+
+        const [error, setError] = useState("");
+        const miniMapRef = useRef(null);
+
+        useEffect(() => {
+          if (!miniMapRef.current || !window.L) return;
+
+          const map = L.map(miniMapRef.current, {
+            zoomControl: true,
+            attributionControl: true,
+          });
+
+          L.tileLayer(TILE_URL, {
+            maxZoom: 20,
+            attribution: TILE_ATTRIBUTION,
+          }).addTo(map);
+
+          map.fitBounds(BOUNDS_VICENTE_LOPEZ);
+
+          let marker = null;
+
+          map.on("click", (e) => {
+            const { lat, lng } = e.latlng;
+            setFormData((prev) => ({
+              ...prev,
+              lat: lat.toFixed(6),
+              lng: lng.toFixed(6),
+            }));
+
+            const icon = createTrapIcon({
+              estado: formData.estado,
+              aedes: formData.aedes,
+            });
+
+            if (marker) {
+              marker.setLatLng(e.latlng);
+              marker.setIcon(icon);
+            } else {
+              marker = L.marker(e.latlng, { icon }).addTo(map);
+            }
+          });
+
+          return () => {
+            map.remove();
+          };
+        }, [formData.estado, formData.aedes]);
+
+        const handleChange = (e) => {
+          const { name, value, type, checked } = e.target;
+          setFormData((prev) => ({
+            ...prev,
+            [name]: type === "checkbox" ? checked : value,
+          }));
+        };
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          setError("");
+
+          if (!formData.id.trim()) {
+            setError("Ingresá un ID de trampa / SPOT.");
+            return;
+          }
+          if (!formData.lat || !formData.lng) {
+            setError("Seleccioná una posición en el mapa haciendo click.");
+            return;
+          }
+
+          const exists = traps.some((t) => t.id === formData.id.trim());
+          if (exists) {
+            setError("Ya existe una trampa con ese ID.");
+            return;
+          }
+
+          const newTrap = {
+            id: formData.id.trim(),
+            barrio: formData.barrio || "Sin barrio",
+            estado: formData.estado,
+            aedes: formData.aedes,
+            lat: parseFloat(formData.lat),
+            lng: parseFloat(formData.lng),
+            ultimaTransmision: formData.ultimaTransmision || "sin datos",
+          };
+
+          setTraps((prev) => [...prev, newTrap]);
+          setSelectedTrapId(newTrap.id);
+          setView("map");
+        };
+
+        return (
+          <div className="space-y-4">
+            <PageHeader
+              title="Agregar nuevo SPOT"
+              subtitle="Definí un nuevo punto en el mapa para la red de trampas."
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.2fr)] gap-4">
+              <Card title="Datos del SPOT">
+                <form onSubmit={handleSubmit} className="space-y-3 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">
+                        ID de SPOT / Trampa
+                      </label>
+                      <input
+                        type="text"
+                        name="id"
+                        value={formData.id}
+                        onChange={handleChange}
+                        placeholder="Ej: T-210"
+                        className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/60 focus:border-cyan-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">
+                        Barrio / Zona
+                      </label>
+                      <input
+                        type="text"
+                        name="barrio"
+                        value={formData.barrio}
+                        onChange={handleChange}
+                        placeholder="Ej: Florida Oeste"
+                        className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/60 focus:border-cyan-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">
+                        Estado inicial
+                      </label>
+                      <select
+                        name="estado"
+                        value={formData.estado}
+                        onChange={handleChange}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/60 focus:border-cyan-500"
+                      >
+                        <option value="activo">Activo</option>
+                        <option value="15d">&gt;15 días sin datos</option>
+                        <option value="30d">&gt;30 días sin datos</option>
+                        <option value="indeterminado">Indeterminado</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-4 sm:mt-6">
+                      <input
+                        id="aedes-checkbox"
+                        type="checkbox"
+                        name="aedes"
+                        checked={formData.aedes}
+                        onChange={handleChange}
+                        className="w-4 h-4 text-rose-500 border-slate-300 rounded"
+                      />
+                      <label
+                        htmlFor="aedes-checkbox"
+                        className="text-xs text-slate-700"
+                      >
+                        Marcar como "Aedes detectado"
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">
+                        Última transmisión (texto)
+                      </label>
+                      <input
+                        type="text"
+                        name="ultimaTransmision"
+                        value={formData.ultimaTransmision}
+                        onChange={handleChange}
+                        placeholder="Ej: hace 1 h, sin datos, etc."
+                        className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/60 focus:border-cyan-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">
+                        Latitud
+                      </label>
+                      <input
+                        type="text"
+                        name="lat"
+                        value={formData.lat}
+                        onChange={handleChange}
+                        placeholder="Click en el mapa para completar"
+                        className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-slate-50"
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">
+                        Longitud
+                      </label>
+                      <input
+                        type="text"
+                        name="lng"
+                        value={formData.lng}
+                        onChange={handleChange}
+                        placeholder="Click en el mapa para completar"
+                        className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-slate-50"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  {error && (
+                    <p className="text-xs text-rose-600 bg-rose-50 border border-rose-100 rounded-lg px-3 py-1.5">
+                      {error}
+                    </p>
+                  )}
+
+                  <div className="flex flex-wrap gap-2 justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setView("map")}
+                      className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 hover:bg-slate-50"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-800"
+                    >
+                      Agregar SPOT al mapa
+                    </button>
+                  </div>
+                </form>
+              </Card>
+
+              <Card title="Elegir ubicación en el mapa">
+                <p className="text-xs text-slate-500 mb-2">
+                  Hacé click en el mapa para definir la posición del nuevo SPOT.
+                  La latitud y longitud se completan automáticamente.
+                </p>
+                <div
+                  ref={miniMapRef}
+                  className="h-72 md:h-80 rounded-xl border border-slate-200 overflow-hidden"
+                ></div>
+              </Card>
+            </div>
+          </div>
+        );
+      }
+
+      // ------------------------------
       // App
       // ------------------------------
       function App() {
         const [view, setView] = useState("dashboard");
         const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-        // selección global de trampa, compartida entre Mapa y Trampas
-        const [selectedTrapId, setSelectedTrapId] = useState(TRAPS[0].id);
+        // estado global de trampas
+        const [traps, setTraps] = useState(INITIAL_TRAPS);
+        const [selectedTrapId, setSelectedTrapId] = useState(
+          INITIAL_TRAPS[0].id
+        );
 
         let content = null;
-        if (view === "dashboard") content = <DashboardView />;
+        if (view === "dashboard") content = <DashboardView traps={traps} />;
         else if (view === "map")
           content = (
             <MapView
+              traps={traps}
               selectedTrapId={selectedTrapId}
               setSelectedTrapId={setSelectedTrapId}
               setView={setView}
@@ -1596,12 +1817,22 @@ function PhotoViewer() {
         else if (view === "traps")
           content = (
             <TrapDetailView
+              traps={traps}
               selectedTrapId={selectedTrapId}
               setSelectedTrapId={setSelectedTrapId}
               setView={setView}
             />
           );
         else if (view === "alerts") content = <AlertsView />;
+        else if (view === "new-spot")
+          content = (
+            <NewSpotView
+              traps={traps}
+              setTraps={setTraps}
+              setSelectedTrapId={setSelectedTrapId}
+              setView={setView}
+            />
+          );
 
         return (
           <div className="h-full flex flex-col md:flex-row">
