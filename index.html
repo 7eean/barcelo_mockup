@@ -55,48 +55,79 @@
         border-radius: 999px;
       }
 
-      /* Pines tipo gota como en la plataforma original */
-      .trap-pin {
-        position: relative;
-        width: 18px;
-        height: 18px;
-        border-radius: 9999px;
-        border: 2px solid #ffffff;
-        box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.6),
-          0 6px 10px rgba(0, 0, 0, 0.8);
-      }
-      .trap-pin::after {
-        content: "";
-        position: absolute;
-        left: 50%;
-        bottom: -7px;
-        transform: translateX(-50%);
-        width: 0;
-        height: 0;
-        border-style: solid;
-        border-width: 7px 5px 0 5px; /* triángulo hacia abajo */
-      }
+      /* Pines simples circulares */
+/* Pines tipo pin: círculo + triangulito */
+.trap-marker {
+  --marker-color: #22c55e; /* valor por defecto */
 
-      .trap-pin--online {
-        background-color: #22c55e; /* verde */
-      }
-      .trap-pin--online::after {
-        border-color: #22c55e transparent transparent transparent;
-      }
+  position: relative;
+  width: 20px;
+  height: 46px; /* espacio para círculo + triángulo */
+}
 
-      .trap-pin--warning {
-        background-color: #f9fafb; /* blanco */
-      }
-      .trap-pin--warning::after {
-        border-color: #f9fafb transparent transparent transparent;
-      }
+/* Círculo principal */
+.trap-marker::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
 
-      .trap-pin--offline {
-        background-color: #ef4444; /* rojo */
-      }
-      .trap-pin--offline::after {
-        border-color: #ef4444 transparent transparent transparent;
-      }
+  /* borde oscuro y glow */
+  background: var(--marker-color);
+  box-shadow:
+    0 0 0 2px #ffffff,               /* aro oscuro alrededor */
+    0 4px 10px rgba(255, 255, 255, 0.9); /* sombra hacia abajo */
+}
+
+/* Triangulito inferior (punta del pin) */
+.trap-marker::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%) translateY(30%);
+  
+
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 6px 8px 0 10px; /* alto 6px, ancho 8px */
+  border-color: var(--marker-color) transparent transparent transparent;
+}
+
+/* Variantes de color por estado */
+.trap-marker--activo {
+  --marker-color: #22c55e; /* verde */
+}
+
+.trap-marker--15d {
+  --marker-color: #e5e7eb; /* gris claro */
+}
+
+.trap-marker--30d {
+  --marker-color: #9ca3af; /* gris medio/oscuro */
+}
+
+.trap-marker--indeterminado {
+  --marker-color: #020617; /* casi negro */
+}
+
+/* Aedes detectado: rojo fuerte y bien visible */
+.trap-marker--aedes {
+  --marker-color: #ef4444;
+}
+
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 10 !important;
+}
+
+
     </style>
   </head>
   <body class="bg-slate-50">
@@ -117,81 +148,171 @@
 
       // ------------------------------
       // Datos de ejemplo de trampas
+      // Modelo C: estado + flag aedes
+      // estados: "activo", "15d", "30d", "indeterminado"
+      // aedes: true => pin rojo
       // ------------------------------
       const TRAPS = [
         {
           id: "T-10",
           lat: -34.523,
           lng: -58.479,
-          estado: "online",
+          estado: "activo",
           barrio: "Florida",
           ultimaTransmision: "hace 2 h",
+          aedes: true,
         },
         {
           id: "T-20",
           lat: -34.534,
           lng: -58.473,
-          estado: "warning",
+          estado: "15d",
           barrio: "Olivos",
-          ultimaTransmision: "hace 5 h",
+          ultimaTransmision: "hace 18 días",
+          aedes: false,
         },
         {
           id: "T-30",
           lat: -34.537,
           lng: -58.489,
-          estado: "offline",
+          estado: "30d",
           barrio: "La Lucila",
-          ultimaTransmision: "hace 18 h",
+          ultimaTransmision: "hace 32 días",
+          aedes: false,
         },
         {
           id: "T-40",
           lat: -34.507,
           lng: -58.482,
-          estado: "online",
+          estado: "activo",
           barrio: "Vicente López",
           ultimaTransmision: "hace 1 h",
+          aedes: true,
         },
         {
           id: "T-50",
           lat: -34.506,
           lng: -58.479,
-          estado: "online",
+          estado: "activo",
           barrio: "Florida",
-          ultimaTransmision: "hace 2 h",
+          ultimaTransmision: "hace 3 h",
+          aedes: false,
         },
         {
           id: "T-60",
           lat: -34.509,
           lng: -58.5,
-          estado: "online",
+          estado: "15d",
           barrio: "Florida",
-          ultimaTransmision: "hace 2 h",
+          ultimaTransmision: "hace 20 días",
+          aedes: false,
         },
         {
           id: "T-90",
           lat: -34.503,
           lng: -58.529,
-          estado: "online",
+          estado: "activo",
           barrio: "Florida",
-          ultimaTransmision: "hace 2 h",
+          ultimaTransmision: "hace 5 h",
+          aedes: false,
         },
         {
           id: "T-100",
           lat: -34.537,
           lng: -58.469,
-          estado: "online",
+          estado: "30d",
           barrio: "La Lucila",
-          ultimaTransmision: "hace 18 h",
+          ultimaTransmision: "hace 40 días",
+          aedes: false,
         },
         {
           id: "T-200",
           lat: -34.537,
           lng: -58.482,
-          estado: "offline",
+          estado: "indeterminado",
           barrio: "La Lucila",
-          ultimaTransmision: "hace 18 h",
+          ultimaTransmision: "sin datos",
+          aedes: true,
+        },
+        {
+          id: "T-150",
+          lat: -34.500,
+          lng: -58.479,
+          estado: "activo",
+          barrio: "Florida",
+          ultimaTransmision: "hace 3 h",
+          aedes: false,
+        },
+        {
+          id: "T-540",
+          lat: -34.530,
+          lng: -58.536,
+          estado: "activo",
+          barrio: "Florida",
+          ultimaTransmision: "hace 3 h",
+          aedes: false,
+        },
+        {
+          id: "T-250",
+          lat: -34.540,
+          lng: -58.526,
+          estado: "activo",
+          barrio: "Florida",
+          ultimaTransmision: "hace 3 h",
+          aedes: false,
+        },
+        {
+          id: "T-650",
+          lat: -34.549,
+          lng: -58.546,
+          estado: "activo",
+          barrio: "Florida",
+          ultimaTransmision: "hace 3 h",
+          aedes: false,
+        },
+        {
+          id: "T-750",
+          lat: -34.543,
+          lng: -58.516,
+          estado: "activo",
+          barrio: "Florida",
+          ultimaTransmision: "hace 3 h",
+          aedes: false,
+        },
+        {
+          id: "T-540",
+          lat: -34.523,
+          lng: -58.516,
+          estado: "activo",
+          barrio: "Florida",
+          ultimaTransmision: "hace 3 h",
+          aedes: false,
         },
       ];
+
+      // Config de estados (texto y colores)
+      const ESTADO_CONFIG = {
+        activo: {
+          label: "Activo",
+          long: "El dispositivo está activo y reportando fotos.",
+          dot: "bg-emerald-500",
+        },
+        "15d": {
+          label: ">15 días sin datos",
+          long: "Más de 15 días sin enviar información.",
+          dot: "bg-slate-300",
+        },
+        "30d": {
+          label: ">30 días sin datos",
+          long: "Más de 30 días sin enviar información.",
+          dot: "bg-slate-500",
+        },
+        indeterminado: {
+          label: "Indeterminado",
+          long: "No se puede determinar el estado del dispositivo.",
+          dot: "bg-slate-900",
+        },
+      };
 
       // ------------------------------
       // Datos de ejemplo de alertas
@@ -210,30 +331,55 @@
           id: 2,
           trapId: "T-30",
           tipo: "Conectividad",
-          detalle: "Trampa sin conexión desde hace más de 12 horas.",
+          detalle: "Más de 30 días sin enviar información.",
           severidad: "media",
           estado: "abierta",
-          hace: "hace 18 h",
+          hace: "hace 32 días",
         },
         {
           id: 3,
           trapId: "T-20",
           tipo: "Sistema",
-          detalle: "Señal WiFi inestable detectada.",
+          detalle: "Más de 15 días sin enviar información.",
           severidad: "baja",
           estado: "abierta",
-          hace: "hace 5 h",
+          hace: "hace 18 días",
         },
         {
           id: 4,
-          trapId: "T-40",
-          tipo: "Detección",
-          detalle: "Aumento inusual de capturas de mosquitos.",
+          trapId: "T-200",
+          tipo: "Sistema",
+          detalle: "No se puede determinar el estado del dispositivo.",
           severidad: "media",
           estado: "resuelta",
           hace: "ayer",
         },
+        {
+          id: 1,
+          trapId: "T-10",
+          tipo: "Detección",
+          detalle: "Aedes aegypti detectado en captura reciente.",
+          severidad: "alta",
+          estado: "abierta",
+          hace: "hace 3 h",
+        },
+        {
+          id: 1,
+          trapId: "T-10",
+          tipo: "Detección",
+          detalle: "Aedes aegypti detectado en captura reciente.",
+          severidad: "alta",
+          estado: "abierta",
+          hace: "hace 3 h",
+        },
       ];
+
+      // Stats de demo para Aedes / Mosquitos / Otros (luego se pueden conectar a datos reales)
+      const DEMO_STATS = {
+        aedes: 7, // por ejemplo, total de Aedes detectados (demo)
+        mosquitos: 42, // otros mosquitos (demo)
+        otros: 15, // otros insectos (demo)
+      };
 
       // Bounds aproximados de Vicente López (solo para centrar al inicio)
       const BOUNDS_VICENTE_LOPEZ = [
@@ -247,19 +393,31 @@
       const TILE_ATTRIBUTION =
         '&copy; OpenStreetMap contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
-      // Crear icono tipo gota según estado
+      // Crear icono tipo gota según estado + AEDES
       function createTrapIcon(trap) {
-        let stateClass = "";
-        if (trap.estado === "online") stateClass = "trap-pin--online";
-        else if (trap.estado === "warning") stateClass = "trap-pin--warning";
-        else stateClass = "trap-pin--offline";
+  // Si tiene Aedes, siempre rojo
+  let variant = "aedes";
 
-        return L.divIcon({
-          className: `trap-pin ${stateClass}`,
-          iconSize: [18, 26], // círculo + colita
-          iconAnchor: [9, 26],
-        });
-      }
+  if (!trap.aedes) {
+    if (trap.estado === "activo" || trap.estado === "online") {
+      variant = "activo";
+    } else if (trap.estado === "15d" || trap.estado === "warning") {
+      variant = "15d";
+    } else if (trap.estado === "30d" || trap.estado === "offline") {
+      variant = "30d";
+    } else {
+      variant = "indeterminado";
+    }
+  }
+
+  return L.divIcon({
+    className: `trap-marker trap-marker--${variant}`,
+    iconSize: [20, 26],   // círculo (18) + triángulo (6)
+    iconAnchor: [10, 26], // 👈 la punta del triángulo es el punto real
+  });
+}
+
+
 
       // ------------------------------
       // Layout / componentes base
@@ -499,6 +657,8 @@
       // ------------------------------
 
       function DashboardView() {
+        const activos = TRAPS.filter((t) => t.estado === "activo").length;
+
         return (
           <div className="space-y-4">
             <PageHeader
@@ -506,30 +666,38 @@
               subtitle="Actividad del sistema de trampas Barceló en Vicente López."
             />
 
-            {/* Métricas principales */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
-              <Card title="Total mosquitos">
-                <div className="text-2xl md:text-3xl font-semibold text-slate-900">
-                  1
+            {/* Métricas principales NUEVAS */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+              <Card title="Aedes">
+                <div className="text-2xl md:text-3xl font-semibold text-rose-600">
+                  {DEMO_STATS.aedes}
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
-                  Últimas 24 horas
+                  Últimas 24 h (demo)
                 </p>
               </Card>
-              <Card title="Total moscas">
-                <div className="text-2xl md:text-3xl font-semibold text-slate-900">
-                  2
+              <Card title="Mosquitos">
+                <div className="text-2xl md:text-3xl font-semibold text-emerald-600">
+                  {DEMO_STATS.mosquitos}
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
-                  Últimas 24 horas
+                  Otras especies (demo)
                 </p>
               </Card>
-              <Card title="Total Aedes" className="col-span-2 sm:col-span-1">
-                <div className="text-2xl md:text-3xl font-semibold text-rose-500">
-                  0
+              <Card title="Otro">
+                <div className="text-2xl md:text-3xl font-semibold text-slate-700">
+                  {DEMO_STATS.otros}
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
-                  Últimas 24 horas
+                  Otros insectos (demo)
+                </p>
+              </Card>
+              <Card title="Total trampas activas">
+                <div className="text-2xl md:text-3xl font-semibold text-slate-900">
+                  {activos}
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Dispositivos en estado activo
                 </p>
               </Card>
             </div>
@@ -540,7 +708,10 @@
               <Card title="Red de trampas" className="lg:col-span-2">
                 <DashboardMiniMap />
                 <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
-                  <span>🟢 Online · 🟡 Advertencia · 🔴 Offline</span>
+                  <span>
+                    🔴 Aedes detectado · 🟢 Activo · ⚪︎ &gt;15 días sin datos ·
+                    ⚫︎ &gt;30 días sin datos · ⬛ Indeterminado
+                  </span>
                   <span>{TRAPS.length} trampas</span>
                 </div>
               </Card>
@@ -562,185 +733,499 @@
               </Card>
             </div>
 
-            {/* Alertas + estado de trampas */}
+            {/* Alertas + estado de trampas (resumen) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card title="Alertas recientes">
                 <ul className="text-sm text-slate-700 space-y-2">
                   <li className="flex justify-between">
                     <span>
-                      <span className="font-medium">T-20</span> · Señal
-                      inestable
-                    </span>
-                    <span className="text-xs text-slate-400">hace 5 h</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>
-                      <span className="font-medium">T-30</span> · Trampa offline
-                    </span>
-                    <span className="text-xs text-slate-400">hace 18 h</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>
                       <span className="font-medium">T-10</span> · Aedes
                       detectado
                     </span>
-                    <span className="text-xs text-slate-400">ayer</span>
+                    <span className="text-xs text-slate-400">hace 3 h</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>
+                      <span className="font-medium">T-20</span> · &gt;15 días sin
+                      datos
+                    </span>
+                    <span className="text-xs text-slate-400">hace 18 días</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>
+                      <span className="font-medium">T-30</span> · &gt;30 días sin
+                      datos
+                    </span>
+                    <span className="text-xs text-slate-400">hace 32 días</span>
                   </li>
                 </ul>
               </Card>
 
-              <Card title="Estado de trampas (demo)">
-                <div className="space-y-2 text-sm text-slate-700">
-                  <div className="flex justify-between items-center">
-                    <span>En línea</span>
-                    <div className="w-28 md:w-32 h-2 rounded-full bg-slate-100">
-                      <div className="h-2 w-3/4 bg-emerald-400 rounded-full"></div>
+              <Card title="Distribución de estado (demo)">
+                {(() => {
+                  const activos = TRAPS.filter(
+                    (t) => t.estado === "activo"
+                  ).length;
+                  const mas15 = TRAPS.filter(
+                    (t) => t.estado === "15d"
+                  ).length;
+                  const mas30 = TRAPS.filter(
+                    (t) => t.estado === "30d"
+                  ).length;
+                  const indet = TRAPS.filter(
+                    (t) => t.estado === "indeterminado"
+                  ).length;
+                  const total = TRAPS.length || 1;
+
+                  return (
+                    <div className="space-y-2 text-sm text-slate-700">
+                      <div className="flex justify-between items-center">
+                        <span>Activos</span>
+                        <div className="w-32 h-2 rounded-full bg-slate-100">
+                          <div
+                            className="h-2 rounded-full bg-emerald-400"
+                            style={{
+                              width: `${(activos / total) * 100}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>&gt;15 días sin datos</span>
+                        <div className="w-32 h-2 rounded-full bg-slate-100">
+                          <div
+                            className="h-2 rounded-full bg-slate-400"
+                            style={{
+                              width: `${(mas15 / total) * 100}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>&gt;30 días sin datos</span>
+                        <div className="w-32 h-2 rounded-full bg-slate-100">
+                          <div
+                            className="h-2 rounded-full bg-slate-500"
+                            style={{
+                              width: `${(mas30 / total) * 100}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Indeterminado</span>
+                        <div className="w-32 h-2 rounded-full bg-slate-100">
+                          <div
+                            className="h-2 rounded-full bg-slate-700"
+                            style={{
+                              width: `${(indet / total) * 100}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Advertencia</span>
-                    <div className="w-28 md:w-32 h-2 rounded-full bg-slate-100">
-                      <div className="h-2 w-1/5 bg-amber-400 rounded-full"></div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Sin conexión</span>
-                    <div className="w-28 md:w-32 h-2 rounded-full bg-slate-100">
-                      <div className="h-2 w-1/10 bg-rose-400 rounded-full"></div>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })()}
               </Card>
             </div>
           </div>
         );
       }
 
-      function MapView() {
-        const mapRef = useRef(null);
-        const [selectedTrap, setSelectedTrap] = useState(TRAPS[0]);
+      // ------------------------------
+      // Mapa con filtros + deep link a Trampas
+      // ------------------------------
+      function MapView({ selectedTrapId, setSelectedTrapId, setView }) {
+  const mapRef = useRef(null);
+  const [selectedTrap, setSelectedTrap] = useState(
+    TRAPS.find((t) => t.id === selectedTrapId) || TRAPS[0]
+  );
+  const [estadoFilter, setEstadoFilter] = useState("todos"); // todos | activo | 15d | 30d | indeterminado | aedes
+  const [showPhotoModal, setShowPhotoModal] = useState(false); // 👈 nuevo estado para el modal
 
-        useEffect(() => {
-          if (!mapRef.current || !window.L) return;
+  // Si cambia el selectedTrapId global, actualizamos la tarjeta
+  useEffect(() => {
+    const trap = TRAPS.find((t) => t.id === selectedTrapId) || TRAPS[0];
+    setSelectedTrap(trap);
+  }, [selectedTrapId]);
 
-          const map = L.map(mapRef.current);
+  useEffect(() => {
+    if (!mapRef.current || !window.L) return;
 
-          // Basemap CARTO dark
-          L.tileLayer(TILE_URL, {
-            maxZoom: 20,
-            attribution: TILE_ATTRIBUTION,
-          }).addTo(map);
+    const map = L.map(mapRef.current);
 
-          // Centrado inicial en Vicente López, pero sin limitar el movimiento
-          map.fitBounds(BOUNDS_VICENTE_LOPEZ);
+    // Basemap CARTO dark
+    L.tileLayer(TILE_URL, {
+      maxZoom: 20,
+      attribution: TILE_ATTRIBUTION,
+    }).addTo(map);
 
-          // Trampas con icono custom tipo gota
-          TRAPS.forEach((trap) => {
-            const icon = createTrapIcon(trap);
-            const marker = L.marker([trap.lat, trap.lng], { icon }).addTo(map);
-            marker.bindPopup(`${trap.id} · ${trap.barrio}`);
-            marker.on("click", () => {
-              setSelectedTrap(trap);
-            });
+    // Filtrado por estado / Aedes
+    let trapsToShow;
+    if (estadoFilter === "todos") {
+      trapsToShow = TRAPS;
+    } else if (estadoFilter === "aedes") {
+      trapsToShow = TRAPS.filter((t) => t.aedes);
+    } else {
+      trapsToShow = TRAPS.filter((t) => t.estado === estadoFilter);
+    }
+
+    // Centrado inicial en Vicente López
+    map.fitBounds(BOUNDS_VICENTE_LOPEZ);
+
+    // Trampa actual (para centrar)
+    const currentTrap =
+      TRAPS.find((t) => t.id === selectedTrapId) || trapsToShow[0];
+
+    // Marcadores
+    trapsToShow.forEach((trap) => {
+      const icon = createTrapIcon(trap);
+      const marker = L.marker([trap.lat, trap.lng], { icon }).addTo(map);
+      marker.bindPopup(
+        `${trap.id} · ${trap.barrio}${trap.aedes ? " · Aedes detectado" : ""}`
+      );
+      marker.on("click", () => {
+        setSelectedTrap(trap);
+      });
+
+      // Abrimos popup y centramos si es la seleccionada
+      if (currentTrap && currentTrap.id === trap.id) {
+        marker.openPopup();
+        map.setView([trap.lat, trap.lng], 16);
+      }
+    });
+
+    return () => {
+      map.remove();
+    };
+  }, [estadoFilter, selectedTrapId]);
+
+  const estadoInfo =
+    ESTADO_CONFIG[selectedTrap?.estado] || ESTADO_CONFIG["indeterminado"];
+
+  return (
+    <div className="space-y-4">
+      <PageHeader
+        title="Mapa de trampas"
+        subtitle="Visualización geográfica de las trampas dentro de Vicente López."
+      />
+
+      {/* Filtros por estado */}
+      <div className="flex flex-wrap gap-2 mb-1">
+        {[
+          { id: "todos", label: "Todas" },
+          { id: "aedes", label: "Aedes" },
+          { id: "activo", label: "Activas" },
+          { id: "15d", label: ">15 días sin datos" },
+          { id: "30d", label: ">30 días sin datos" },
+          { id: "indeterminado", label: "Indeterminado" },
+        ].map((opt) => (
+          <button
+            key={opt.id}
+            onClick={() => setEstadoFilter(opt.id)}
+            className={
+              "px-3 py-1.5 rounded-full text-xs font-medium border " +
+              (estadoFilter === opt.id
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-slate-700 border-slate-200")
+            }
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,0.8fr)] gap-4">
+        {/* Mapa real dark con Leaflet, más grande */}
+        <Card title="Mapa Vicente López">
+          <div
+            ref={mapRef}
+            className="h-96 md:h-[480px] rounded-xl border border-slate-200 overflow-hidden"
+          ></div>
+        </Card>
+
+        <Card title="Trampa seleccionada">
+          <div className="space-y-2 text-sm">
+            <div>
+              <div className="text-xs uppercase tracking-wide text-slate-500">
+                ID
+              </div>
+              <div className="font-semibold text-slate-900">
+                {selectedTrap?.id}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-wide text-slate-500">
+                Barrio
+              </div>
+              <div className="text-slate-700">{selectedTrap?.barrio}</div>
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-wide text-slate-500">
+                Estado
+              </div>
+              <div className="inline-flex flex-col gap-1">
+                <div className="inline-flex items-center gap-1">
+                  <span
+                    className={"w-2 h-2 rounded-full " + estadoInfo.dot}
+                  ></span>
+                  <span className="text-slate-800">{estadoInfo.label}</span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  {estadoInfo.long}
+                </p>
+              </div>
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-wide text-slate-500">
+                Aedes
+              </div>
+              <div className="text-slate-700">
+                {selectedTrap?.aedes
+                  ? "Aedes detectado en las últimas capturas (demo)."
+                  : "Sin detección reciente de Aedes (demo)."}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-wide text-slate-500">
+                Última transmisión
+              </div>
+              <div className="text-slate-700">
+                {selectedTrap?.ultimaTransmision}
+              </div>
+            </div>
+
+            {/* Botón existente */}
+            <button
+              className="mt-3 w-full py-2 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800"
+              onClick={() => {
+                if (selectedTrap) {
+                  setSelectedTrapId(selectedTrap.id);
+                }
+                setView("traps");
+              }}
+            >
+              Ver detalle de trampa
+            </button>
+
+            {/* NUEVO BOTÓN: abre modal con última foto */}
+            <button
+              className="mt-2 w-full py-2 rounded-xl border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50"
+              onClick={() => setShowPhotoModal(true)}
+            >
+              Ver última foto procesada
+            </button>
+          </div>
+        </Card>
+      </div>
+
+      {/* MODAL DE FOTO */}
+{/* MODAL DE FOTO (reemplazar el bloque anterior completo) */}
+{showPhotoModal && (
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/70">
+    <div className="relative bg-white rounded-2xl shadow-xl max-w-4xl w-[92%] overflow-hidden">
+
+      {/* BOTÓN X flotante */}
+      <button
+        onClick={() => setShowPhotoModal(false)}
+        className="absolute top-3 right-3 z-[9999] p-2 rounded-full bg-white/80 hover:bg-white shadow-md"
+        aria-label="Cerrar modal"
+      >
+        <svg
+          className="w-5 h-5 text-slate-700"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+
+      {/* CONTENEDOR CON ZOOM */}
+      <PhotoViewer />
+    </div>
+  </div>
+)}
+
+
+    </div>
+  );
+}
+
+// Pequeño visor de foto con zoom + descarga
+function PhotoViewer() {
+  const [zoom, setZoom] = React.useState(1);
+
+  const handleWheel = (e) => {
+    e.preventDefault(); // evita que scrollee la página
+    setZoom((current) => {
+      const delta = e.deltaY < 0 ? 0.1 : -0.1;
+      const next = current + delta;
+      return Math.min(3, Math.max(1, next)); // entre 1x y 3x
+    });
+  };
+
+  const resetZoom = () => setZoom(1);
+
+  return (
+    <>
+      <div
+        className="bg-black max-h-[75vh] flex items-center justify-center overflow-auto"
+        onWheel={handleWheel}
+      >
+        <img
+          src="./assets/ultima-foto-procesada.jpg"
+          alt="Última imagen procesada por IA"
+          className="w-auto object-contain"
+          style={{
+            transform: `scale(${zoom})`,
+            transformOrigin: "center center",
+          }}
+        />
+      </div>
+
+      {/* Footer del modal con acciones */}
+      <div className="flex flex-wrap gap-2 items-center justify-between px-4 py-3 text-[11px] text-slate-500 bg-slate-50 border-t border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+          <span>Generada por IA · Trampa T-10 · demo (en futuro desde AWS)</span>
+          <span>Procesada hace 3 h</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {zoom !== 1 && (
+            <button
+              onClick={resetZoom}
+              className="px-2 py-1 rounded-full border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-100"
+            >
+              Reiniciar zoom
+            </button>
+          )}
+
+          {/* Descargar imagen (Opción C) */}
+          <a
+            href="./assets/ultima-foto-procesada.jpg"
+            download="ultima-foto-procesada.jpg"
+            className="px-3 py-1.5 rounded-full bg-slate-900 text-white text-[11px] font-medium hover:bg-slate-800"
+          >
+            Descargar imagen
+          </a>
+        </div>
+      </div>
+    </>
+  );
+}
+
+
+
+      // ------------------------------
+      // Timeline de estado para Trampas
+      // ------------------------------
+      function TrapTimeline({ trap }) {
+        const base = [
+          {
+            hace: "Hace 45 días",
+            desc: `Instalación de la trampa en ${trap.barrio}.`,
+          },
+        ];
+
+        const timelineByEstado = {
+          activo: [
+            {
+              hace: "Hoy",
+              desc: "El dispositivo está activo y reportando fotos.",
+            },
+            {
+              hace: "Hace 7 días",
+              desc: "Se confirma envío regular de información.",
+            },
+            {
+              hace: "Hace 20 días",
+              desc: "Periodo con pocos envíos, se normaliza luego.",
+            },
+          ],
+          "15d": [
+            {
+              hace: "Hoy",
+              desc: "Más de 15 días sin enviar información.",
+            },
+            {
+              hace: "Hace 16 días",
+              desc: "Último envío registrado desde el dispositivo.",
+            },
+          ],
+          "30d": [
+            {
+              hace: "Hoy",
+              desc: "Más de 30 días sin enviar información.",
+            },
+            {
+              hace: "Hace 35 días",
+              desc: "Se detecta ausencia prolongada de datos.",
+            },
+            {
+              hace: "Hace 40 días",
+              desc: "Último envío registrado desde el dispositivo.",
+            },
+          ],
+          indeterminado: [
+            {
+              hace: "Hoy",
+              desc: "No se puede determinar el estado del dispositivo.",
+            },
+            {
+              hace: "Hace 10 días",
+              desc: "Inconsistencias en los registros de transmisión.",
+            },
+          ],
+        };
+
+        const extra =
+          timelineByEstado[trap.estado] || timelineByEstado["indeterminado"];
+
+        const events = [...base, ...extra];
+
+        // Si hay Aedes, agregamos un evento específico al principio
+        if (trap.aedes) {
+          events.unshift({
+            hace: "Hoy",
+            desc: "Aedes detectado en captura reciente (demo).",
           });
-
-          return () => {
-            map.remove();
-          };
-        }, []);
+        }
 
         return (
-          <div className="space-y-4">
-            <PageHeader
-              title="Mapa de trampas"
-              subtitle="Visualización geográfica de las trampas dentro de Vicente López."
-            />
-
-            {/* Filtros */}
-            <div className="flex flex-wrap gap-2 mb-1">
-              <button className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-900 text-white">
-                Mosquitos
-              </button>
-              <button className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                Aedes
-              </button>
-              <button className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                Estado
-              </button>
-              <button className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                Barrio
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,0.8fr)] gap-4">
-              {/* Mapa real dark con Leaflet, más grande */}
-              <Card title="Mapa Vicente López">
-                <div
-                  ref={mapRef}
-                  className="h-96 md:h-[480px] rounded-xl border border-slate-200 overflow-hidden"
-                ></div>
-              </Card>
-
-              <Card title="Trampa seleccionada">
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <div className="text-xs uppercase tracking-wide text-slate-500">
-                      ID
-                    </div>
-                    <div className="font-semibold text-slate-900">
-                      {selectedTrap?.id}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase tracking-wide text-slate-500">
-                      Barrio
-                    </div>
-                    <div className="text-slate-700">
-                      {selectedTrap?.barrio}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase tracking-wide text-slate-500">
-                      Estado
-                    </div>
-                    <div className="inline-flex items-center gap-1">
-                      <span
-                        className={
-                          "w-2 h-2 rounded-full " +
-                          (selectedTrap?.estado === "online"
-                            ? "bg-emerald-500"
-                            : selectedTrap?.estado === "warning"
-                            ? "bg-amber-500"
-                            : "bg-rose-500")
-                        }
-                      ></span>
-                      <span className="capitalize">
-                        {selectedTrap?.estado}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase tracking-wide text-slate-500">
-                      Última transmisión
-                    </div>
-                    <div className="text-slate-700">
-                      {selectedTrap?.ultimaTransmision}
-                    </div>
-                  </div>
-
-                  <button className="mt-3 w-full py-2 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800">
-                    Ver detalle de trampa
-                  </button>
+          <ul className="space-y-2">
+            {events.map((e, idx) => (
+              <li key={idx} className="flex gap-3">
+                <div className="flex flex-col items-center">
+                  <div className="w-2 h-2 rounded-full bg-slate-400 mt-1"></div>
+                  {idx < events.length - 1 && (
+                    <div className="w-px flex-1 bg-slate-200 mt-1"></div>
+                  )}
                 </div>
-              </Card>
-            </div>
-          </div>
+                <div className="text-xs">
+                  <div className="text-[11px] font-medium text-slate-500">
+                    {e.hace}
+                  </div>
+                  <div className="text-slate-700">{e.desc}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
         );
       }
 
-      function TrapDetailView() {
-        const [selectedTrapId, setSelectedTrapId] = useState(TRAPS[0].id);
-        const trap = TRAPS.find((t) => t.id === selectedTrapId);
+      // ------------------------------
+      // Trampas (detalle) con selector + timeline + "Ver en mapa"
+      // ------------------------------
+      function TrapDetailView({ selectedTrapId, setSelectedTrapId, setView }) {
+        const trap =
+          TRAPS.find((t) => t.id === selectedTrapId) || TRAPS[0];
+        const estadoInfo =
+          ESTADO_CONFIG[trap.estado] || ESTADO_CONFIG["indeterminado"];
 
         return (
           <div className="space-y-4">
@@ -749,27 +1234,36 @@
               subtitle="Vista técnica del dispositivo y estado de hardware."
             />
 
-            {/* Selector de trampa */}
+            {/* Selector de trampa + botón Ver en mapa */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
               <p className="text-sm text-slate-500">
                 Seleccioná una trampa para ver su detalle técnico.
               </p>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 uppercase tracking-wide">
-                  Trampa
-                </span>
-                <select
-                  value={selectedTrapId}
-                  onChange={(e) => setSelectedTrapId(e.target.value)}
-                  className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/60 focus:border-cyan-500"
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 uppercase tracking-wide">
+                    Trampa
+                  </span>
+                  <select
+                    value={selectedTrapId}
+                    onChange={(e) => setSelectedTrapId(e.target.value)}
+                    className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white shadow-sm focus:outline-nonefocus:ring-2 focus:ring-cyan-500/60 focus:border-cyan-500"
+                  >
+                    {TRAPS.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.id} · {t.barrio}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  onClick={() => setView("map")}
+                  className="text-xs md:text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
                 >
-                  {TRAPS.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.id} · {t.barrio}
-                    </option>
-                  ))}
-                </select>
+                  Ver en mapa
+                </button>
               </div>
             </div>
 
@@ -788,30 +1282,34 @@
                     <div className="text-xs uppercase tracking-wide text-slate-500">
                       Estado general
                     </div>
-                    <div className="inline-flex items-center gap-2">
-                      <span
-                        className={
-                          "w-2 h-2 rounded-full " +
-                          (trap.estado === "online"
-                            ? "bg-emerald-500"
-                            : trap.estado === "warning"
-                            ? "bg-amber-500"
-                            : "bg-rose-500")
-                        }
-                      ></span>
-                      <span className="capitalize text-slate-800">
-                        {trap.estado}
-                      </span>
+                    <div className="flex flex-col gap-1">
+                      <div className="inline-flex items-center gap-2">
+                        <span
+                          className={
+                            "w-2 h-2 rounded-full " + estadoInfo.dot
+                          }
+                        ></span>
+                        <span className="text-slate-800">
+                          {estadoInfo.label}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500">
+                        {estadoInfo.long}
+                      </p>
                     </div>
                   </div>
                   <div>
                     <div className="text-xs uppercase tracking-wide text-slate-500">
-                      Señal WiFi
+                      Aedes
                     </div>
-                    <div className="text-slate-800">-55 dBm (estable)</div>
+                    <div className="text-slate-800">
+                      {trap.aedes
+                        ? "Aedes detectado en la actividad reciente (demo)."
+                        : "Sin detección reciente de Aedes (demo)."}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                    <div className="text-xsuppercase tracking-wide text-slate-500">
                       Última captura
                     </div>
                     <div className="text-slate-800">
@@ -890,12 +1388,8 @@
                 </div>
               </Card>
 
-              <Card title="Eventos técnicos recientes">
-                <ul className="text-sm text-slate-700 space-y-2">
-                  <li>22 abr · Reinicio normal del dispositivo</li>
-                  <li>18 abr · Señal WiFi baja durante 10 min</li>
-                  <li>10 abr · Temperatura alta (resuelta)</li>
-                </ul>
+              <Card title="Historial de estado">
+                <TrapTimeline trap={trap} />
               </Card>
             </div>
           </div>
@@ -1058,15 +1552,31 @@
       // ------------------------------
       // App
       // ------------------------------
-
       function App() {
         const [view, setView] = useState("dashboard");
         const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
+        // selección global de trampa, compartida entre Mapa y Trampas
+        const [selectedTrapId, setSelectedTrapId] = useState(TRAPS[0].id);
+
         let content = null;
         if (view === "dashboard") content = <DashboardView />;
-        else if (view === "map") content = <MapView />;
-        else if (view === "traps") content = <TrapDetailView />;
+        else if (view === "map")
+          content = (
+            <MapView
+              selectedTrapId={selectedTrapId}
+              setSelectedTrapId={setSelectedTrapId}
+              setView={setView}
+            />
+          );
+        else if (view === "traps")
+          content = (
+            <TrapDetailView
+              selectedTrapId={selectedTrapId}
+              setSelectedTrapId={setSelectedTrapId}
+              setView={setView}
+            />
+          );
         else if (view === "alerts") content = <AlertsView />;
 
         return (
